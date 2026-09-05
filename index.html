@@ -101,10 +101,12 @@
     padding: 1px 6px; border-radius: 20px;
   }
 
-  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 16px 0; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin: 16px 0; }
   .stat { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 9px; padding: 11px 10px; }
   .stat .num { font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 600; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .stat.warn .num { color: var(--warn); }
+  .stat.ok .num { color: var(--ok); }
+  .stat.pend .num { color: var(--accent); }
   .stat .lbl { font-size: 11px; color: var(--text-dim); margin-top: 3px; display: block; line-height: 1.25; }
 
   .toolbar { display: flex; gap: 8px; margin-bottom: 14px; }
@@ -119,6 +121,12 @@
     align-items: center; gap: 6px; cursor: pointer; white-space: nowrap;
   }
   .add-btn:hover, .submit-btn:hover { background: #9ad4ff; }
+  .submit-btn {
+    padding: 16px 0;
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 10px;
+  }
 
   .list { display: flex; flex-direction: column; gap: 9px; }
   .job { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 10px; padding: 13px 14px; position: relative; }
@@ -129,6 +137,16 @@
   .job-meta { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
   .tag { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); color: var(--text-dim); }
   .tag.warn { color: var(--warn); border-color: rgba(255,106,85,0.4); background: rgba(255,106,85,0.07); }
+  .tag.ok-tag {
+    color: var(--ok); border-color: rgba(79,214,153,0.4); background: rgba(79,214,153,0.08); cursor: pointer;
+  }
+  .cobrar-btn {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600;
+    padding: 6px 10px; border-radius: 6px; border: 1px solid var(--accent-dim); color: var(--accent);
+    background: rgba(127,199,255,0.07); cursor: pointer; font-family: 'Barlow', sans-serif;
+  }
+  .cobrar-btn:hover { background: rgba(127,199,255,0.15); }
+  .cobrar-btn svg { width: 14px; height: 14px; }
   .job-monto { font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: var(--text); margin-left: auto; border: none; padding: 0; }
 
   .job-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 4px; }
@@ -204,6 +222,7 @@
     storageBucket: "trabajos-iluminacion.firebasestorage.app",
     messagingSenderId: "813955208865",
     appId: "1:813955208865:web:c8d079c2eed49426cf02e0"
+
     };
     // =====================================================================
 
@@ -216,6 +235,14 @@
       { id: "enzo", label: "Enzo" },
       { id: "cesar", label: "César" },
     ];
+
+    // Mapeo opcional: si el email con el que inician sesión coincide con
+    // alguno de estos, la app abre directo en la pestaña de esa persona.
+    // Poné acá los mismos emails que creaste en Firebase Authentication.
+    const EMAIL_A_PERSONA = {
+      "enzoenzoca07@gmail.com": "enzo",
+      "celipsisvisuales@gmail.com": "cesar",
+    };
 
     const state = {
       user: null,
@@ -240,6 +267,7 @@
         facturador: "",
         monto: "",
         facturaEnviada: false,
+        cobrado: false,
       };
     }
 
@@ -262,6 +290,8 @@
       state.user = user;
       if (user) {
         state.loading = true;
+        const personaDetectada = EMAIL_A_PERSONA[(user.email || "").toLowerCase()];
+        if (personaDetectada) state.tab = personaDetectada;
         render();
         if (unsubscribeTrabajos) unsubscribeTrabajos();
         unsubscribeTrabajos = onSnapshot(
@@ -316,14 +346,24 @@
       };
       try {
         if (state.editingId) {
+          // No tocamos "cobrado" acá: se maneja aparte con el botón "Ya cobré".
           await updateDoc(doc(db, "trabajos", state.editingId), payload);
         } else {
-          await addDoc(trabajosCol, { ...payload, creadoEn: Date.now() });
+          await addDoc(trabajosCol, { ...payload, cobrado: false, creadoEn: Date.now() });
         }
         state.saveError = "";
         cerrarForm();
       } catch (err) {
         state.saveError = "No se pudo guardar: " + err.message;
+        render();
+      }
+    }
+
+    async function marcarCobrado(id, valor) {
+      try {
+        await updateDoc(doc(db, "trabajos", id), { cobrado: valor });
+      } catch (err) {
+        state.saveError = "No se pudo actualizar: " + err.message;
         render();
       }
     }
@@ -349,6 +389,7 @@
       state.form = {
         persona: job.persona, fecha: job.fecha, lugar: job.lugar,
         facturador: job.facturador, monto: String(job.monto), facturaEnviada: job.facturaEnviada,
+        cobrado: !!job.cobrado,
       };
       state.showForm = true;
       render();
@@ -364,10 +405,13 @@
       return state.trabajos.filter((t) => t.persona === personaId);
     }
     function resumen(lista) {
-      const totalCobrado = lista.reduce((acc, t) => acc + (Number(t.monto) || 0), 0);
+      const cobrados = lista.filter((t) => t.cobrado);
+      const porCobrar = lista.filter((t) => !t.cobrado);
+      const totalCobrado = cobrados.reduce((acc, t) => acc + (Number(t.monto) || 0), 0);
+      const totalPorCobrar = porCobrar.reduce((acc, t) => acc + (Number(t.monto) || 0), 0);
       const sinFacturador = lista.filter((t) => !t.facturador || !t.facturador.trim()).length;
       const sinEnviar = lista.filter((t) => !t.facturaEnviada).length;
-      return { totalCobrado, cantidad: lista.length, sinFacturador, sinEnviar };
+      return { totalCobrado, totalPorCobrar, cantidad: lista.length, sinFacturador, sinEnviar };
     }
 
     function renderLogin() {
@@ -450,6 +494,11 @@
                   <div class="job-meta" style="margin-top:7px;">
                     <span class="tag warn"><i data-lucide="alert-triangle"></i> Factura no enviada</span>
                   </div>` : ""}
+                <div class="job-meta" style="margin-top:7px;">
+                  ${job.cobrado
+                    ? `<span class="tag ok-tag" data-action="marcar-por-cobrar" data-id="${job.id}" title="Click para deshacer"><i data-lucide="check-circle-2"></i> Cobrado</span>`
+                    : `<button class="cobrar-btn" data-action="marcar-cobrado" data-id="${job.id}"><i data-lucide="banknote"></i> Ya cobré</button>`}
+                </div>
               </div>
             `;
           }).join("")}
@@ -474,7 +523,8 @@
           ` : `
             <div class="tabs">${tabsHtml}</div>
             <div class="stats">
-              <div class="stat"><span class="num">${money(r.totalCobrado)}</span><span class="lbl">Total cobrado</span></div>
+              <div class="stat ok"><span class="num">${money(r.totalCobrado)}</span><span class="lbl">Cobrado</span></div>
+              <div class="stat pend"><span class="num">${money(r.totalPorCobrar)}</span><span class="lbl">Por cobrar</span></div>
               <div class="stat"><span class="num">${r.cantidad}</span><span class="lbl">Trabajos</span></div>
               <div class="stat ${r.sinFacturador > 0 ? "warn" : ""}"><span class="num">${r.sinFacturador}</span><span class="lbl">Sin definir facturador</span></div>
               <div class="stat ${r.sinEnviar > 0 ? "warn" : ""}"><span class="num">${r.sinEnviar}</span><span class="lbl">Facturas sin enviar</span></div>
@@ -591,6 +641,12 @@
       });
       appEl.querySelectorAll('[data-action="confirm-borrar"]').forEach(btn => {
         btn.addEventListener("click", () => borrarTrabajo(btn.dataset.id));
+      });
+      appEl.querySelectorAll('[data-action="marcar-cobrado"]').forEach(btn => {
+        btn.addEventListener("click", () => marcarCobrado(btn.dataset.id, true));
+      });
+      appEl.querySelectorAll('[data-action="marcar-por-cobrar"]').forEach(btn => {
+        btn.addEventListener("click", () => marcarCobrado(btn.dataset.id, false));
       });
       const logoutBtn = appEl.querySelector('[data-action="logout"]');
       if (logoutBtn) logoutBtn.addEventListener("click", handleLogout);
