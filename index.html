@@ -197,14 +197,12 @@
     //    (Configuración del proyecto > Tus apps > SDK de Firebase)
     // =====================================================================
     const firebaseConfig = {
-    apiKey: "AIzaSyCo-COK-hq72MPXowd07sHSmNC6q4bJIR0",
-    authDomain: "trabajos-iluminacion.firebaseapp.com",
-    databaseURL: "https://trabajos-iluminacion-default-rtdb.firebaseio.com",
-    projectId: "trabajos-iluminacion",
-    storageBucket: "trabajos-iluminacion.firebasestorage.app",
-    messagingSenderId: "813955208865",
-    appId: "1:813955208865:web:c8d079c2eed49426cf02e0"
-
+      apiKey: "TU_API_KEY",
+      authDomain: "TU_PROYECTO.firebaseapp.com",
+      projectId: "TU_PROYECTO",
+      storageBucket: "TU_PROYECTO.appspot.com",
+      messagingSenderId: "TU_SENDER_ID",
+      appId: "TU_APP_ID",
     };
     // =====================================================================
 
@@ -233,9 +231,9 @@
       saveError: "",
     };
 
-    function emptyForm() {
+    function emptyForm(persona) {
       return {
-        persona: state ? state.tab || "enzo" : "enzo",
+        persona: persona || "enzo",
         fecha: new Date().toISOString().slice(0, 10),
         lugar: "",
         facturador: "",
@@ -341,7 +339,7 @@
 
     function abrirNuevo(persona) {
       state.editingId = null;
-      state.form = { ...emptyForm(), persona: persona || state.tab };
+      state.form = emptyForm(persona || state.tab);
       state.showForm = true;
       render();
     }
@@ -357,7 +355,7 @@
     function cerrarForm() {
       state.showForm = false;
       state.editingId = null;
-      state.form = emptyForm();
+      state.form = emptyForm(state.tab);
       render();
     }
 
