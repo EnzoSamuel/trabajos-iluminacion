@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Trabajos de Iluminación</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  :root {
+    --bg: #0a0e13;
+    --panel: #12181f;
+    --panel-2: #1a222b;
+    --border: #263241;
+    --border-soft: #1c2530;
+    --text: #eaf2f8;
+    --text-dim: #7f93a3;
+    --text-faint: #56636f;
+    --accent: #7fc7ff;
+    --accent-dim: #3f6f8f;
+    --warn: #ff6a55;
+    --warn-dim: #4a2c26;
+    --ok: #4fd699;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    height: 100%; margin: 0; padding: 0;
+    background: var(--bg); color: var(--text);
+    font-family: 'Barlow', sans-serif;
+  }
+  #app { min-height: 100vh; width: 100%; padding-bottom: 60px;
+    background-image: linear-gradient(180deg, rgba(127,199,255,0.05), transparent 220px); }
+
+  /* ---------- LOGIN ---------- */
+  .login-wrap {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .login-card {
+    width: 100%; max-width: 340px; background: var(--panel);
+    border: 1px solid var(--border-soft); border-radius: 14px; padding: 28px 24px;
+  }
+  .login-card .logo-mark { margin: 0 auto 14px; }
+  .login-card h1 {
+    font-family: 'Barlow Condensed', sans-serif; font-size: 22px; text-align: center; margin: 0 0 4px;
+  }
+  .login-card p.sub { text-align: center; color: var(--text-dim); font-size: 13px; margin: 0 0 22px; }
+  .login-card label { display: block; font-size: 12.5px; color: var(--text-dim); margin-bottom: 6px; }
+  .login-card input {
+    width: 100%; background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 11px; color: var(--text); font-size: 14.5px; margin-bottom: 14px; outline: none;
+    font-family: 'Barlow', sans-serif;
+  }
+  .login-card input:focus { border-color: var(--accent-dim); box-shadow: 0 0 0 3px rgba(127,199,255,0.12); }
+  .login-card button {
+    width: 100%; background: var(--accent); color: #06121c; border: none; border-radius: 9px;
+    padding: 12px 0; font-weight: 700; font-size: 15px; cursor: pointer; font-family: 'Barlow', sans-serif;
+  }
+  .login-card button:hover { background: #9ad4ff; }
+  .login-error { color: var(--warn); font-size: 12.5px; margin: -6px 0 14px; }
+
+  /* ---------- HEADER ---------- */
+  .header { padding: 22px 20px 18px; border-bottom: 1px solid var(--border-soft); }
+  .header-inner { max-width: 760px; margin: 0 auto; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .logo-mark {
+    width: 34px; height: 34px; border-radius: 6px; background: linear-gradient(160deg, #1a2530, #0d1319);
+    border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+    color: var(--accent); flex-shrink: 0;
+  }
+  .title-block h1 { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 26px; margin: 0; line-height: 1.1; }
+  .title-block p { margin: 2px 0 0; color: var(--text-dim); font-size: 13.5px; }
+  .sync-info {
+    margin-left: auto; display: flex; align-items: center; gap: 6px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-faint);
+  }
+  .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); animation: pulse 2s infinite; }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(79,214,153,0.5); }
+    70% { box-shadow: 0 0 0 6px rgba(79,214,153,0); }
+    100% { box-shadow: 0 0 0 0 rgba(79,214,153,0); }
+  }
+  .logout-btn {
+    background: transparent; border: 1px solid var(--border); color: var(--text-dim);
+    border-radius: 6px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+  }
+  .logout-btn:hover { color: var(--warn); border-color: rgba(255,106,85,0.4); }
+
+  .content { max-width: 760px; margin: 0 auto; padding: 18px 20px 0; }
+
+  .tabs { display: flex; gap: 6px; background: var(--panel); border: 1px solid var(--border-soft); border-radius: 10px; padding: 4px; }
+  .tab-btn {
+    flex: 1; background: transparent; border: none; color: var(--text-dim);
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 17px;
+    padding: 10px 8px; border-radius: 7px; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; gap: 7px;
+  }
+  .tab-btn.active { background: var(--panel-2); color: var(--text); box-shadow: inset 0 0 0 1px var(--border); }
+  .tab-btn .pill {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; background: var(--warn-dim); color: var(--warn);
+    padding: 1px 6px; border-radius: 20px;
+  }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 16px 0; }
+  .stat { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 9px; padding: 11px 10px; }
+  .stat .num { font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 600; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stat.warn .num { color: var(--warn); }
+  .stat .lbl { font-size: 11px; color: var(--text-dim); margin-top: 3px; display: block; line-height: 1.25; }
+
+  .toolbar { display: flex; gap: 8px; margin-bottom: 14px; }
+  .search { flex: 1; display: flex; align-items: center; gap: 7px; background: var(--panel); border: 1px solid var(--border-soft); border-radius: 8px; padding: 0 10px; }
+  .search svg { color: var(--text-faint); flex-shrink: 0; width: 15px; height: 15px; }
+  .search input { background: transparent; border: none; outline: none; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 14.5px; padding: 9px 0; width: 100%; }
+  .search input::placeholder { color: var(--text-faint); }
+
+  .add-btn, .submit-btn {
+    background: var(--accent); color: #06121c; border: none; border-radius: 8px; padding: 0 16px;
+    font-family: 'Barlow', sans-serif; font-weight: 600; font-size: 14.5px; display: flex;
+    align-items: center; gap: 6px; cursor: pointer; white-space: nowrap;
+  }
+  .add-btn:hover, .submit-btn:hover { background: #9ad4ff; }
+
+  .list { display: flex; flex-direction: column; gap: 9px; }
+  .job { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 10px; padding: 13px 14px; position: relative; }
+  .job.has-warning { border-color: rgba(255,106,85,0.35); }
+  .job-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+  .job-fecha { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--accent); }
+  .job-lugar { font-size: 15.5px; font-weight: 500; margin-bottom: 9px; padding-right: 60px; }
+  .job-meta { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+  .tag { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); color: var(--text-dim); }
+  .tag.warn { color: var(--warn); border-color: rgba(255,106,85,0.4); background: rgba(255,106,85,0.07); }
+  .job-monto { font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: var(--text); margin-left: auto; border: none; padding: 0; }
+
+  .job-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 4px; }
+  .icon-btn { background: transparent; border: none; color: var(--text-faint); cursor: pointer; padding: 5px; border-radius: 5px; display: flex; }
+  .icon-btn svg { width: 15px; height: 15px; }
+  .icon-btn:hover { color: var(--text); background: var(--panel-2); }
+  .icon-btn.danger:hover { color: var(--warn); }
+
+  .confirm-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-dim); }
+  .confirm-row button { font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; border: none; border-radius: 5px; padding: 4px 9px; cursor: pointer; }
+  .confirm-row .yes { background: var(--warn); color: #240a06; }
+  .confirm-row .no { background: var(--panel-2); color: var(--text-dim); }
+
+  .empty { text-align: center; padding: 46px 20px; color: var(--text-dim); border: 1px dashed var(--border); border-radius: 10px; }
+  .empty h3 { font-family: 'Barlow Condensed', sans-serif; color: var(--text); font-size: 19px; margin: 10px 0 6px; }
+  .empty p { font-size: 13.5px; margin: 0 0 14px; }
+  .empty .add-btn { margin: 0 auto; }
+
+  .loading-wrap { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 60px 0; color: var(--text-dim); font-size: 14px; }
+  .spin { animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .overlay { position: fixed; inset: 0; background: rgba(4,7,10,0.72); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
+  @media (min-width: 640px) { .overlay { align-items: center; padding: 20px; } }
+  .modal { background: var(--panel); border: 1px solid var(--border); border-bottom: none; border-radius: 16px 16px 0 0; width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto; padding: 20px 20px 24px; }
+  @media (min-width: 640px) { .modal { border-radius: 14px; border-bottom: 1px solid var(--border); } }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .modal-head h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 600; margin: 0; }
+  .modal-head button { background: transparent; border: none; color: var(--text-dim); cursor: pointer; padding: 4px; }
+
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12.5px; color: var(--text-dim); margin-bottom: 6px; }
+  .field .hint { font-size: 11.5px; color: var(--text-faint); margin-top: 5px; }
+  .field input[type="text"], .field input[type="date"], .field input[type="number"] {
+    width: 100%; background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 11px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 14.5px; outline: none;
+  }
+  .field input:focus { border-color: var(--accent-dim); box-shadow: 0 0 0 3px rgba(127,199,255,0.12); }
+  .persona-select, .bool-select { display: flex; gap: 8px; }
+  .persona-select button, .bool-select button {
+    flex: 1; background: var(--panel-2); border: 1px solid var(--border); color: var(--text-dim);
+    border-radius: 8px; padding: 9px 0; font-family: 'Barlow', sans-serif; font-weight: 500; font-size: 14px; cursor: pointer;
+  }
+  .persona-select button.sel, .bool-select button.sel { border-color: var(--accent); color: var(--text); background: rgba(127,199,255,0.09); }
+  .bool-select button.sel.no { border-color: var(--warn); color: var(--text); background: rgba(255,106,85,0.09); }
+  .save-error { color: var(--warn); font-size: 12.5px; margin-bottom: 10px; }
+  .amount-prefix { position: relative; }
+  .amount-prefix span { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-faint); font-family: 'IBM Plex Mono', monospace; font-size: 14px; }
+  .amount-prefix input { padding-left: 30px !important; }
+</style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import {
+      getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence
+    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import {
+      getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+    // =====================================================================
+    // 1) PEGÁ ACÁ TU CONFIGURACIÓN DE FIREBASE
+    //    (Configuración del proyecto > Tus apps > SDK de Firebase)
+    // =====================================================================
+    const firebaseConfig = {
+    apiKey: "AIzaSyCo-COK-hq72MPXowd07sHSmNC6q4bJIR0",
+    authDomain: "trabajos-iluminacion.firebaseapp.com",
+    databaseURL: "https://trabajos-iluminacion-default-rtdb.firebaseio.com",
+    projectId: "trabajos-iluminacion",
+    storageBucket: "trabajos-iluminacion.firebasestorage.app",
+    messagingSenderId: "813955208865",
+    appId: "1:813955208865:web:c8d079c2eed49426cf02e0"
+
+    };
+    // =====================================================================
+
+    const fbApp = initializeApp(firebaseConfig);
+    const auth = getAuth(fbApp);
+    const db = getFirestore(fbApp);
+    const trabajosCol = collection(db, "trabajos");
+
+    const PERSONAS = [
+      { id: "enzo", label: "Enzo" },
+      { id: "cesar", label: "César" },
+    ];
+
+    const state = {
+      user: null,
+      authReady: false,
+      loginError: "",
+      trabajos: [],
+      loading: true,
+      tab: "enzo",
+      query: "",
+      showForm: false,
+      editingId: null,
+      form: emptyForm(),
+      confirmDeleteId: null,
+      saveError: "",
+    };
+
+    function emptyForm() {
+      return {
+        persona: state ? state.tab || "enzo" : "enzo",
+        fecha: new Date().toISOString().slice(0, 10),
+        lugar: "",
+        facturador: "",
+        monto: "",
+        facturaEnviada: false,
+      };
+    }
+
+    function money(n) {
+      const num = Number(n) || 0;
+      return num.toLocaleString("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
+    }
+    function fechaCorta(iso) {
+      if (!iso) return "";
+      const [y, m, d] = iso.split("-");
+      return `${d}/${m}/${y}`;
+    }
+
+    let unsubscribeTrabajos = null;
+
+    setPersistence(auth, browserLocalPersistence).catch(() => {});
+
+    onAuthStateChanged(auth, (user) => {
+      state.authReady = true;
+      state.user = user;
+      if (user) {
+        state.loading = true;
+        render();
+        if (unsubscribeTrabajos) unsubscribeTrabajos();
+        unsubscribeTrabajos = onSnapshot(
+          trabajosCol,
+          (snap) => {
+            const list = [];
+            snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
+            list.sort((a, b) => (a.fecha < b.fecha ? 1 : a.fecha > b.fecha ? -1 : (b.creadoEn || 0) - (a.creadoEn || 0)));
+            state.trabajos = list;
+            state.loading = false;
+            render();
+          },
+          (err) => {
+            state.loading = false;
+            state.saveError = "No se pudo conectar con la base de datos: " + err.message;
+            render();
+          }
+        );
+      } else {
+        if (unsubscribeTrabajos) { unsubscribeTrabajos(); unsubscribeTrabajos = null; }
+        state.trabajos = [];
+        state.loading = false;
+      }
+      render();
+    });
+
+    async function handleLogin(email, password) {
+      state.loginError = "";
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (err) {
+        state.loginError = "No se pudo iniciar sesión. Revisá el usuario y la contraseña.";
+        render();
+      }
+    }
+
+    function handleLogout() {
+      signOut(auth);
+    }
+
+    async function guardarTrabajo(e) {
+      e.preventDefault();
+      const f = state.form;
+      if (!f.lugar.trim() || !f.fecha) return;
+      const payload = {
+        persona: f.persona,
+        fecha: f.fecha,
+        lugar: f.lugar.trim(),
+        facturador: f.facturador.trim(),
+        monto: Number(f.monto) || 0,
+        facturaEnviada: !!f.facturaEnviada,
+      };
+      try {
+        if (state.editingId) {
+          await updateDoc(doc(db, "trabajos", state.editingId), payload);
+        } else {
+          await addDoc(trabajosCol, { ...payload, creadoEn: Date.now() });
+        }
+        state.saveError = "";
+        cerrarForm();
+      } catch (err) {
+        state.saveError = "No se pudo guardar: " + err.message;
+        render();
+      }
+    }
+
+    async function borrarTrabajo(id) {
+      try {
+        await deleteDoc(doc(db, "trabajos", id));
+      } catch (err) {
+        state.saveError = "No se pudo borrar: " + err.message;
+      }
+      state.confirmDeleteId = null;
+      render();
+    }
+
+    function abrirNuevo(persona) {
+      state.editingId = null;
+      state.form = { ...emptyForm(), persona: persona || state.tab };
+      state.showForm = true;
+      render();
+    }
+    function abrirEdicion(job) {
+      state.editingId = job.id;
+      state.form = {
+        persona: job.persona, fecha: job.fecha, lugar: job.lugar,
+        facturador: job.facturador, monto: String(job.monto), facturaEnviada: job.facturaEnviada,
+      };
+      state.showForm = true;
+      render();
+    }
+    function cerrarForm() {
+      state.showForm = false;
+      state.editingId = null;
+      state.form = emptyForm();
+      render();
+    }
+
+    function porPersona(personaId) {
+      return state.trabajos.filter((t) => t.persona === personaId);
+    }
+    function resumen(lista) {
+      const totalCobrado = lista.reduce((acc, t) => acc + (Number(t.monto) || 0), 0);
+      const sinFacturador = lista.filter((t) => !t.facturador || !t.facturador.trim()).length;
+      const sinEnviar = lista.filter((t) => !t.facturaEnviada).length;
+      return { totalCobrado, cantidad: lista.length, sinFacturador, sinEnviar };
+    }
+
+    function renderLogin() {
+      return `
+        <div class="login-wrap">
+          <div class="login-card">
+            <div class="logo-mark" style="width:40px;height:40px;">
+              <i data-lucide="zap"></i>
+            </div>
+            <h1>Trabajos de Iluminación</h1>
+            <p class="sub">Iniciá sesión para ver y cargar trabajos</p>
+            <form id="login-form">
+              <label>Usuario / Email</label>
+              <input type="email" id="login-email" required autocomplete="username" />
+              <label>Contraseña</label>
+              <input type="password" id="login-password" required autocomplete="current-password" />
+              ${state.loginError ? `<div class="login-error">${state.loginError}</div>` : ""}
+              <button type="submit">Entrar</button>
+            </form>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderApp() {
+      const listaActual = porPersona(state.tab);
+      const filtrada = state.query.trim()
+        ? listaActual.filter((t) => {
+            const q = state.query.trim().toLowerCase();
+            return t.lugar.toLowerCase().includes(q) || (t.facturador || "").toLowerCase().includes(q);
+          })
+        : listaActual;
+      const r = resumen(listaActual);
+      const badges = {
+        enzo: (() => { const s = resumen(porPersona("enzo")); return s.sinFacturador + s.sinEnviar; })(),
+        cesar: (() => { const s = resumen(porPersona("cesar")); return s.sinFacturador + s.sinEnviar; })(),
+      };
+
+      const tabsHtml = PERSONAS.map(p => `
+        <button class="tab-btn ${state.tab === p.id ? "active" : ""}" data-tab="${p.id}">
+          ${p.label} ${badges[p.id] > 0 ? `<span class="pill">${badges[p.id]}</span>` : ""}
+        </button>
+      `).join("");
+
+      const listHtml = filtrada.length === 0 ? `
+        <div class="empty">
+          <h3>${state.query ? "No hay resultados" : "Todavía no hay trabajos cargados"}</h3>
+          <p>${state.query ? "Probá con otro lugar o nombre de facturador." : `Agregá el primer trabajo de ${PERSONAS.find(p => p.id === state.tab)?.label}.`}</p>
+          ${!state.query ? `<button class="add-btn" data-action="nuevo"><i data-lucide="plus"></i> Agregar trabajo</button>` : ""}
+        </div>
+      ` : `
+        <div class="list">
+          ${filtrada.map(job => {
+            const faltaFacturador = !job.facturador || !job.facturador.trim();
+            const faltaEnvio = !job.facturaEnviada;
+            const tieneAlerta = faltaFacturador || faltaEnvio;
+            return `
+              <div class="job ${tieneAlerta ? "has-warning" : ""}">
+                <div class="job-actions">
+                  ${state.confirmDeleteId === job.id ? `
+                    <div class="confirm-row">
+                      ¿Borrar?
+                      <button class="yes" data-action="confirm-borrar" data-id="${job.id}">Sí</button>
+                      <button class="no" data-action="cancelar-borrar">No</button>
+                    </div>
+                  ` : `
+                    <button class="icon-btn" data-action="editar" data-id="${job.id}" title="Editar"><i data-lucide="pencil"></i></button>
+                    <button class="icon-btn danger" data-action="pedir-borrar" data-id="${job.id}" title="Borrar"><i data-lucide="trash-2"></i></button>
+                  `}
+                </div>
+                <div class="job-top"><span class="job-fecha">${fechaCorta(job.fecha)}</span></div>
+                <div class="job-lugar">${job.lugar}</div>
+                <div class="job-meta">
+                  ${faltaFacturador
+                    ? `<span class="tag warn"><i data-lucide="help-circle"></i> Falta definir quién factura</span>`
+                    : `<span class="tag">Factura: ${job.facturador}</span>`}
+                  <span class="tag job-monto">${money(job.monto)}</span>
+                </div>
+                ${faltaEnvio ? `
+                  <div class="job-meta" style="margin-top:7px;">
+                    <span class="tag warn"><i data-lucide="alert-triangle"></i> Factura no enviada</span>
+                  </div>` : ""}
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+
+      return `
+        <div class="header">
+          <div class="header-inner">
+            <div class="logo-mark"><i data-lucide="zap"></i></div>
+            <div class="title-block">
+              <h1>Trabajos de Iluminación</h1>
+              <p>Registro de trabajos y facturación</p>
+            </div>
+            <div class="sync-info"><span class="sync-dot"></span> En vivo</div>
+            <button class="logout-btn" data-action="logout" title="Cerrar sesión"><i data-lucide="log-out"></i></button>
+          </div>
+        </div>
+        <div class="content">
+          ${state.loading ? `
+            <div class="loading-wrap"><i data-lucide="loader-2" class="spin"></i> Cargando trabajos...</div>
+          ` : `
+            <div class="tabs">${tabsHtml}</div>
+            <div class="stats">
+              <div class="stat"><span class="num">${money(r.totalCobrado)}</span><span class="lbl">Total cobrado</span></div>
+              <div class="stat"><span class="num">${r.cantidad}</span><span class="lbl">Trabajos</span></div>
+              <div class="stat ${r.sinFacturador > 0 ? "warn" : ""}"><span class="num">${r.sinFacturador}</span><span class="lbl">Sin definir facturador</span></div>
+              <div class="stat ${r.sinEnviar > 0 ? "warn" : ""}"><span class="num">${r.sinEnviar}</span><span class="lbl">Facturas sin enviar</span></div>
+            </div>
+            <div class="toolbar">
+              <div class="search">
+                <i data-lucide="search"></i>
+                <input id="search-input" placeholder="Buscar por lugar o facturador..." value="${state.query}" />
+              </div>
+              <button class="add-btn" data-action="nuevo"><i data-lucide="plus"></i> Agregar</button>
+            </div>
+            ${state.saveError ? `<div class="save-error">${state.saveError}</div>` : ""}
+            ${listHtml}
+          `}
+        </div>
+        ${state.showForm ? renderModal() : ""}
+      `;
+    }
+
+    function renderModal() {
+      const f = state.form;
+      return `
+        <div class="overlay" id="overlay">
+          <div class="modal" id="modal-box">
+            <div class="modal-head">
+              <h2>${state.editingId ? "Editar trabajo" : "Nuevo trabajo"}</h2>
+              <button data-action="cerrar-form"><i data-lucide="x"></i></button>
+            </div>
+            <form id="job-form">
+              <div class="field">
+                <label>Trabajo de</label>
+                <div class="persona-select">
+                  ${PERSONAS.map(p => `<button type="button" class="${f.persona === p.id ? "sel" : ""}" data-persona="${p.id}">${p.label}</button>`).join("")}
+                </div>
+              </div>
+              <div class="field">
+                <label>Fecha</label>
+                <input type="date" id="f-fecha" required value="${f.fecha}" />
+              </div>
+              <div class="field">
+                <label>Lugar</label>
+                <input type="text" id="f-lugar" required placeholder="Ej: Club Niceto" value="${f.lugar.replace(/"/g, "&quot;")}" />
+              </div>
+              <div class="field">
+                <label>Quién lo factura</label>
+                <input type="text" id="f-facturador" placeholder="Nombre de quién hace la factura" value="${f.facturador.replace(/"/g, "&quot;")}" />
+                <div class="hint">Si lo dejás vacío, va a quedar marcado como pendiente.</div>
+              </div>
+              <div class="field">
+                <label>Cuánto cobró</label>
+                <div class="amount-prefix">
+                  <span>$</span>
+                  <input type="number" id="f-monto" min="0" step="1000" placeholder="0" value="${f.monto}" />
+                </div>
+              </div>
+              <div class="field">
+                <label>¿Mandó la factura?</label>
+                <div class="bool-select">
+                  <button type="button" class="${f.facturaEnviada ? "sel" : ""}" data-bool="true">Sí, la mandó</button>
+                  <button type="button" class="${!f.facturaEnviada ? "sel no" : ""}" data-bool="false">Todavía no</button>
+                </div>
+              </div>
+              <button type="submit" class="submit-btn" style="width:100%;justify-content:center;">
+                ${state.editingId ? "Guardar cambios" : "Agregar trabajo"}
+              </button>
+            </form>
+          </div>
+        </div>
+      `;
+    }
+
+    function attachListeners() {
+      const appEl = document.getElementById("app");
+
+      const loginForm = document.getElementById("login-form");
+      if (loginForm) {
+        loginForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const email = document.getElementById("login-email").value.trim();
+          const password = document.getElementById("login-password").value;
+          handleLogin(email, password);
+        });
+      }
+
+      appEl.querySelectorAll("[data-tab]").forEach(btn => {
+        btn.addEventListener("click", () => { state.tab = btn.dataset.tab; render(); });
+      });
+
+      const searchInput = document.getElementById("search-input");
+      if (searchInput) {
+        searchInput.addEventListener("input", (e) => {
+          state.query = e.target.value;
+          render();
+          document.getElementById("search-input")?.focus();
+          const val = document.getElementById("search-input");
+          if (val) val.selectionStart = val.selectionEnd = val.value.length;
+        });
+      }
+
+      appEl.querySelectorAll('[data-action="nuevo"]').forEach(btn => {
+        btn.addEventListener("click", () => abrirNuevo(state.tab));
+      });
+      appEl.querySelectorAll('[data-action="editar"]').forEach(btn => {
+        btn.addEventListener("click", () => {
+          const job = state.trabajos.find(t => t.id === btn.dataset.id);
+          if (job) abrirEdicion(job);
+        });
+      });
+      appEl.querySelectorAll('[data-action="pedir-borrar"]').forEach(btn => {
+        btn.addEventListener("click", () => { state.confirmDeleteId = btn.dataset.id; render(); });
+      });
+      appEl.querySelectorAll('[data-action="cancelar-borrar"]').forEach(btn => {
+        btn.addEventListener("click", () => { state.confirmDeleteId = null; render(); });
+      });
+      appEl.querySelectorAll('[data-action="confirm-borrar"]').forEach(btn => {
+        btn.addEventListener("click", () => borrarTrabajo(btn.dataset.id));
+      });
+      const logoutBtn = appEl.querySelector('[data-action="logout"]');
+      if (logoutBtn) logoutBtn.addEventListener("click", handleLogout);
+
+      const cerrarFormBtn = appEl.querySelector('[data-action="cerrar-form"]');
+      if (cerrarFormBtn) cerrarFormBtn.addEventListener("click", cerrarForm);
+      const overlay = document.getElementById("overlay");
+      if (overlay) overlay.addEventListener("click", (e) => { if (e.target === overlay) cerrarForm(); });
+      const modalBox = document.getElementById("modal-box");
+      if (modalBox) modalBox.addEventListener("click", (e) => e.stopPropagation());
+
+      appEl.querySelectorAll("[data-persona]").forEach(btn => {
+        btn.addEventListener("click", () => { state.form.persona = btn.dataset.persona; render(); });
+      });
+      appEl.querySelectorAll("[data-bool]").forEach(btn => {
+        btn.addEventListener("click", () => { state.form.facturaEnviada = btn.dataset.bool === "true"; render(); });
+      });
+
+      const jobForm = document.getElementById("job-form");
+      if (jobForm) {
+        jobForm.addEventListener("submit", guardarTrabajo);
+        document.getElementById("f-fecha").addEventListener("input", (e) => state.form.fecha = e.target.value);
+        document.getElementById("f-lugar").addEventListener("input", (e) => state.form.lugar = e.target.value);
+        document.getElementById("f-facturador").addEventListener("input", (e) => state.form.facturador = e.target.value);
+        document.getElementById("f-monto").addEventListener("input", (e) => state.form.monto = e.target.value);
+      }
+
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    function render() {
+      const appEl = document.getElementById("app");
+      if (!state.authReady) {
+        appEl.innerHTML = `<div class="loading-wrap"><i data-lucide="loader-2" class="spin"></i> Cargando...</div>`;
+      } else if (!state.user) {
+        appEl.innerHTML = renderLogin();
+      } else {
+        appEl.innerHTML = renderApp();
+      }
+      attachListeners();
+    }
+
+    render();
+  </script>
+</body>
+</html>
