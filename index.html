@@ -155,10 +155,11 @@
   /* ---------- SELECTOR DE VISTA ---------- */
   .seg { display: flex; position: relative; background: rgba(16,22,29,.9); border: 1px solid var(--border-soft); border-radius: 14px; padding: 4px; margin-bottom: 16px; }
   .seg .thumb {
-    position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 2); border-radius: 10px;
+    position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 3); border-radius: 10px;
     background: linear-gradient(160deg, #22303d, #1a2530); box-shadow: inset 0 0 0 1px var(--border), 0 0 20px -8px var(--accent);
   }
   .seg[data-view="cal"] .thumb { transform: translateX(100%); }
+  .seg[data-view="gastos"] .thumb { transform: translateX(200%); }
   .seg .thumb.slide { animation: thumbSlide .5s var(--ease); }
   @keyframes thumbSlide { from { transform: translateX(var(--from)); } }
   .seg button {
@@ -374,6 +375,30 @@
     100% { opacity: 0; transform: translate(-50%, -70%) scale(1.08); filter: blur(6px); }
   }
 
+  /* ---------- GASTOS ---------- */
+  .gcards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+  @media (max-width: 560px) { .gcards { grid-template-columns: 1fr; } }
+  .gcard { background: rgba(12,18,25,.6); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border: 1px solid var(--border-soft); border-radius: 16px; padding: 14px 16px; }
+  .gcard .lbl { font-size: 11.5px; text-transform: uppercase; letter-spacing: .1em; color: var(--text-dim); }
+  .gcard .big { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 22px; margin-top: 6px; white-space: nowrap; }
+  .gcard.neg .big { color: var(--warn); }
+  .gcard.pos .big { color: var(--ok); }
+  .cats { background: rgba(12,18,25,.6); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border: 1px solid var(--border-soft); border-radius: 16px; padding: 14px 16px; margin-bottom: 16px; }
+  .cats h3, .gasto-list-title { font-family: 'Barlow Condensed', sans-serif; font-size: 19px; margin: 0 0 10px; }
+  .cat-row { display: grid; grid-template-columns: 110px 1fr auto; gap: 10px; align-items: center; font-size: 13.5px; margin-bottom: 8px; }
+  .cat-row .nm { color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cat-row .bar { height: 8px; border-radius: 999px; background: var(--panel-2); overflow: hidden; }
+  .cat-row .bar i { display: block; height: 100%; width: var(--w); border-radius: inherit; background: linear-gradient(90deg, #ff9a1f, var(--warn)); transform-origin: left; animation: grow 1s var(--ease) backwards; }
+  .cat-row .mt { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; }
+  .gasto { position: relative; background: rgba(12,18,25,.6); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border: 1px solid var(--border-soft); border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; transition: transform .25s var(--ease), border-color .25s; }
+  .gasto:hover { transform: translateY(-2px); border-color: var(--border); }
+  .gasto .gi { flex: 1; min-width: 0; }
+  .gasto .gcat { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #ffb199; background: rgba(255,106,85,.12); border: 1px solid rgba(255,106,85,.3); padding: 2px 8px; border-radius: 999px; }
+  .gasto .gdesc { margin-top: 6px; font-size: 14.5px; word-break: break-word; }
+  .gasto .gdate { margin-top: 3px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--text-faint); }
+  .gasto .gmonto { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 16px; color: var(--warn); white-space: nowrap; }
+  .gasto .gdel { align-self: flex-start; }
+
   /* ---------- VIDEO DE FONDO ---------- */
   #vbg { position: fixed; inset: 0; z-index: -2; background: #05070b url(fondos/fondo-1.jpg) center / cover no-repeat; overflow: hidden; }
   #vbg video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.8s ease; }
@@ -461,6 +486,8 @@
     const auth = getAuth(fbApp);
     const db = getFirestore(fbApp);
     const trabajosCol = collection(db, "trabajos");
+    // "Gastos Express": colección aparte; la escribe la app Android y se lee acá.
+    const gastosCol = collection(db, "gastos");
 
     // Única cuenta autorizada a ver la información. Cualquier otra sesión se cierra.
     // (La protección real de los datos se aplica además en las reglas de Firestore.)
@@ -494,6 +521,10 @@
       animate: true,
       view: "list",          // "list" | "cal"
       viewChanged: false,
+      prevView: "list",
+      gastos: [],
+      gastosError: "",
+      confirmDeleteGasto: null,
       filter: "todos",       // todos | porcobrar | sinenviar | cobrados
       cal: { y: hoy.getFullYear(), m: hoy.getMonth() },
       calDir: 0,
@@ -801,6 +832,42 @@
        AUTENTICACIÓN Y DATOS
        ===================================================================== */
     let unsubscribeTrabajos = null;
+    let unsubscribeGastos = null;
+
+    function fechaDeGasto(g) {
+      const f = g.fecha;
+      if (f && typeof f.toDate === "function") return f.toDate();
+      if (typeof f === "string" && f) return new Date(f);
+      return new Date(g.creadoEn || 0);
+    }
+    function suscribirGastos() {
+      if (unsubscribeGastos) unsubscribeGastos();
+      unsubscribeGastos = onSnapshot(
+        gastosCol,
+        (snap) => {
+          const list = [];
+          snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
+          list.sort((a, b) => fechaDeGasto(b) - fechaDeGasto(a));
+          state.gastos = list;
+          state.gastosError = "";
+          if (state.view === "gastos") { state.animate = false; render(); }
+        },
+        (err) => {
+          state.gastosError = err.code === "permission-denied"
+            ? 'Firestore no permite leer la colección "gastos". Actualizá las reglas (ver firestore.rules.example).'
+            : err.message;
+          if (state.view === "gastos") { state.animate = false; render(); }
+        }
+      );
+    }
+    async function borrarGasto(id) {
+      try { await deleteDoc(doc(db, "gastos", id)); }
+      catch (err) { state.saveError = "No se pudo borrar el gasto: " + err.message; }
+      state.confirmDeleteGasto = null;
+      state.animate = false;
+      render();
+    }
+
     setPersistence(auth, browserLocalPersistence).catch(() => {});
 
     onAuthStateChanged(auth, (user) => {
@@ -816,6 +883,7 @@
         state.loading = true;
         state.animate = true;
         render();
+        suscribirGastos();
         if (unsubscribeTrabajos) unsubscribeTrabajos();
         unsubscribeTrabajos = onSnapshot(
           trabajosCol,
@@ -837,7 +905,9 @@
         );
       } else {
         if (unsubscribeTrabajos) { unsubscribeTrabajos(); unsubscribeTrabajos = null; }
+        if (unsubscribeGastos) { unsubscribeGastos(); unsubscribeGastos = null; }
         state.trabajos = [];
+        state.gastos = [];
         state.loading = false;
       }
       render();
@@ -1115,6 +1185,56 @@
       `;
     }
 
+    function renderGastosView() {
+      if (state.gastosError) {
+        return `<div class="empty"><h3>No se pueden leer los gastos</h3><p>${esc(state.gastosError)}</p></div>`;
+      }
+      const g = state.gastos;
+      const total = g.reduce((a, x) => a + (Number(x.monto) || 0), 0);
+      const mes = hoyIso.slice(0, 7);
+      const delMes = g.filter((x) => { const d = fechaDeGasto(x); return isoDay(d.getFullYear(), d.getMonth(), d.getDate()).startsWith(mes); });
+      const totalMes = delMes.reduce((a, x) => a + (Number(x.monto) || 0), 0);
+      const balance = resumen(misTrabajos()).totalCobrado - total;
+      const cap = (s) => { s = String(s || "Sin categoría").trim() || "Sin categoría"; return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase(); };
+
+      const porCat = {};
+      g.forEach((x) => { const k = cap(x.categoria); porCat[k] = (porCat[k] || 0) + (Number(x.monto) || 0); });
+      const cats = Object.entries(porCat).sort((a, b) => b[1] - a[1]);
+      const max = cats.length ? cats[0][1] : 1;
+
+      const fmtFecha = (x) => fechaDeGasto(x).toLocaleString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+      const lista = g.length === 0
+        ? `<div class="empty"><h3>Todavía no hay gastos</h3><p>Los gastos que cargues desde el widget del celular aparecen acá al instante.</p></div>`
+        : `<div class="list">${g.map((x, i) => `
+            <div class="gasto enter" style="--i:${Math.min(i, 12)}">
+              <div class="gi">
+                <span class="gcat">${esc(cap(x.categoria))}</span>
+                ${x.descripcion ? `<div class="gdesc">${esc(x.descripcion)}</div>` : ""}
+                <div class="gdate">${fmtFecha(x)}</div>
+              </div>
+              <div class="gmonto">${money(x.monto)}</div>
+              <div class="gdel">
+                ${state.confirmDeleteGasto === x.id ? `
+                  <div class="confirm-row">¿Borrar?
+                    <button class="yes" data-action="confirm-borrar-gasto" data-id="${esc(x.id)}">Sí</button>
+                    <button class="no" data-action="cancelar-borrar-gasto">No</button>
+                  </div>` : `<button class="icon-btn danger" data-action="pedir-borrar-gasto" data-id="${esc(x.id)}" title="Borrar" aria-label="Borrar gasto"><i data-lucide="trash-2"></i></button>`}
+              </div>
+            </div>`).join("")}</div>`;
+
+      return `
+        <div class="gcards">
+          <div class="gcard enter" style="--i:0"><div class="lbl">Total gastado</div><div class="big" style="color:var(--warn)" data-count="${total}" data-key="g-total">${money(total)}</div></div>
+          <div class="gcard enter" style="--i:1"><div class="lbl">Este mes</div><div class="big" data-count="${totalMes}" data-key="g-mes">${money(totalMes)}</div></div>
+          <div class="gcard enter ${balance >= 0 ? "pos" : "neg"}" style="--i:2"><div class="lbl">Cobrado − gastos</div><div class="big" data-count="${balance}" data-key="g-bal">${money(balance)}</div></div>
+        </div>
+        ${cats.length ? `<div class="cats enter" style="--i:3"><h3>Por categoría</h3>
+          ${cats.map(([k, v]) => `<div class="cat-row"><span class="nm">${esc(k)}</span><span class="bar"><i style="--w:${Math.max(3, Math.round(v / max * 100))}%"></i></span><span class="mt">${money(v)}</span></div>`).join("")}</div>` : ""}
+        <div class="gasto-list-title">Egresos registrados · ${g.length}</div>
+        ${lista}
+      `;
+    }
+
     function renderApp() {
       const lista = misTrabajos();
       const r = resumen(lista);
@@ -1159,15 +1279,16 @@
               <span class="chip ${r.sinEnviar > 0 ? "warn" : ""}" ${r.sinEnviar > 0 ? `data-goto="sinenviar"` : ""}>Sin enviar <b>${r.sinEnviar}</b></span>
             </div>
             <div class="seg enter" ${st()} data-view="${state.view}">
-              <span class="thumb ${state.viewChanged ? "slide" : ""}" style="--from:${state.view === "cal" ? "0%" : "100%"}"></span>
+              <span class="thumb ${state.viewChanged ? "slide" : ""}" style="--from:${({ list: 0, cal: 100, gastos: 200 })[state.prevView] ?? 0}%"></span>
               <button class="${state.view === "list" ? "active" : ""}" data-view="list"><i data-lucide="layout-list"></i> Lista</button>
               <button class="${state.view === "cal" ? "active" : ""}" data-view="cal"><i data-lucide="calendar-days"></i> Calendario</button>
+              <button class="${state.view === "gastos" ? "active" : ""}" data-view="gastos"><i data-lucide="wallet"></i> Gastos</button>
             </div>
             ${state.saveError ? `<div class="save-error">${esc(state.saveError)}</div>` : ""}
-            ${state.view === "cal" ? renderCalendarView(lista) : renderListView(lista)}
+            ${state.view === "cal" ? renderCalendarView(lista) : state.view === "gastos" ? renderGastosView() : renderListView(lista)}
           `}
         </div>
-        ${state.loading ? "" : `<button class="fab" data-action="nuevo" aria-label="Agregar trabajo" title="Agregar trabajo"><i data-lucide="plus"></i></button>`}
+        ${state.loading || state.view === "gastos" ? "" : `<button class="fab" data-action="nuevo" aria-label="Agregar trabajo" title="Agregar trabajo"><i data-lucide="plus"></i></button>`}
         ${state.showForm ? renderModal() : ""}
       `;
     }
@@ -1253,12 +1374,12 @@
 
       on(".seg button[data-view]", (b) => {
         if (b.dataset.view === state.view) return;
-        state.view = b.dataset.view; state.viewChanged = true; state.animate = true; state.selDay = null;
+        state.prevView = state.view; state.view = b.dataset.view; state.viewChanged = true; state.animate = true; state.selDay = null;
         render();
       });
       on("[data-filter]", (b) => { state.filter = b.dataset.filter; state.animate = true; render(); });
       on("[data-goto]", (b) => {
-        state.filter = b.dataset.goto; state.view = "list"; state.viewChanged = true; state.animate = true;
+        state.filter = b.dataset.goto; state.prevView = state.view; state.view = "list"; state.viewChanged = true; state.animate = true;
         const [x, y] = centro(b); fxMini(x, y, b.dataset.goto === "cobrados" ? "#4fd699" : "#7fc7ff", 14);
         render();
       });
@@ -1294,6 +1415,9 @@
         marcarCobrado(b.dataset.id, true);
       });
       on('[data-action="marcar-por-cobrar"]', (b) => marcarCobrado(b.dataset.id, false));
+      on('[data-action="pedir-borrar-gasto"]', (b) => { state.confirmDeleteGasto = b.dataset.id; state.animate = false; render(); });
+      on('[data-action="cancelar-borrar-gasto"]', () => { state.confirmDeleteGasto = null; state.animate = false; render(); });
+      on('[data-action="confirm-borrar-gasto"]', (b) => borrarGasto(b.dataset.id));
       on('[data-action="logout"]', () => handleLogout());
       on('[data-action="cerrar-form"]', () => cerrarForm());
 

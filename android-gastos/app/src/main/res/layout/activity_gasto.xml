@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Gastos Express"
+        android:textColor="#EAF2F8"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/in_categoria"
+        style="@style/Campo"
+        android:layout_marginTop="14dp"
+        android:hint="Categoría (ej: Nafta)"
+        android:imeOptions="actionNext"
+        android:inputType="textCapSentences"
+        android:maxLines="1" />
+
+    <EditText
+        android:id="@+id/in_monto"
+        style="@style/Campo"
+        android:hint="Monto en $"
+        android:imeOptions="actionNext"
+        android:inputType="number"
+        android:maxLength="10"
+        android:maxLines="1" />
+
+    <EditText
+        android:id="@+id/in_descripcion"
+        style="@style/Campo"
+        android:hint="Descripción (opcional)"
+        android:imeOptions="actionDone"
+        android:inputType="textCapSentences"
+        android:maxLines="2" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_cancelar"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_input"
+            android:text="Cancelar"
+            android:textAllCaps="false"
+            android:textColor="#8497A7" />
+
+        <Button
+            android:id="@+id/btn_guardar"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="2"
+            android:background="@drawable/btn_accent"
+            android:text="Guardar / Enviar"
+            android:textAllCaps="false"
+            android:textColor="#06121C"
+            android:textStyle="bold" />
+    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,29 @@
+// Reglas de ejemplo para Firestore (consola de Firebase > Firestore > Reglas).
+// Solo tu cuenta puede leer/escribir. Las colecciones "trabajos" (facturas) y
+// "gastos" (Gastos Express) quedan protegidas por el mismo email.
+// Revisá las reglas que ya tenés antes de pegar: si ya cubren "trabajos", solo
+// agregá el bloque de "gastos".
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function esDueno() {
+      return request.auth != null
+        && request.auth.token.email == "enzoenzoca07@gmail.com";
+    }
+
+    match /trabajos/{id} {
+      allow read, write: if esDueno();
+    }
+
+    match /gastos/{id} {
+      allow read, delete: if esDueno();
+      allow create: if esDueno()
+        && request.resource.data.keys().hasOnly(['categoria','monto','descripcion','fecha','creadoEn','origen'])
+        && request.resource.data.categoria is string
+        && request.resource.data.monto is number
+        && request.resource.data.monto > 0
+        && request.resource.data.descripcion is string;
+      allow update: if false;
+    }
+  }
+}
