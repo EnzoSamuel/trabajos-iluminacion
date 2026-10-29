@@ -2,204 +2,441 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0e13" />
+<meta name="robots" content="noindex, nofollow" />
 <title>Trabajos de Iluminación</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
 <style>
   :root {
-    --bg: #0a0e13;
-    --panel: #12181f;
-    --panel-2: #1a222b;
+    --bg: #070a0f;
+    --panel: #10161d;
+    --panel-2: #18202a;
     --border: #263241;
     --border-soft: #1c2530;
     --text: #eaf2f8;
-    --text-dim: #7f93a3;
+    --text-dim: #8497a7;
     --text-faint: #56636f;
     --accent: #7fc7ff;
     --accent-dim: #3f6f8f;
+    --violet: #b58bff;
+    --gold: #ffd24a;
     --warn: #ff6a55;
     --warn-dim: #4a2c26;
     --ok: #4fd699;
+    --ease: cubic-bezier(.22,.8,.3,1);
   }
-  * { box-sizing: border-box; }
-  html, body {
-    height: 100%; margin: 0; padding: 0;
-    background: var(--bg); color: var(--text);
-    font-family: 'Barlow', sans-serif;
-  }
-  #app { min-height: 100vh; width: 100%; padding-bottom: 60px;
-    background-image: linear-gradient(180deg, rgba(127,199,255,0.05), transparent 220px); }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { min-height: 100%; margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'Barlow', sans-serif; }
+  #bg { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+  #fx { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 200; pointer-events: none; }
+  #app { position: relative; z-index: 1; min-height: 100vh; width: 100%; padding-bottom: 110px; }
+  button { font-family: inherit; }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-  /* ---------- LOGIN ---------- */
-  .login-wrap {
-    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
-  }
-  .login-card {
-    width: 100%; max-width: 340px; background: var(--panel);
-    border: 1px solid var(--border-soft); border-radius: 14px; padding: 28px 24px;
-  }
-  .login-card .logo-mark { margin: 0 auto 14px; }
-  .login-card h1 {
-    font-family: 'Barlow Condensed', sans-serif; font-size: 22px; text-align: center; margin: 0 0 4px;
-  }
-  .login-card p.sub { text-align: center; color: var(--text-dim); font-size: 13px; margin: 0 0 22px; }
-  .login-card label { display: block; font-size: 12.5px; color: var(--text-dim); margin-bottom: 6px; }
-  .login-card input {
-    width: 100%; background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
-    padding: 10px 11px; color: var(--text); font-size: 14.5px; margin-bottom: 14px; outline: none;
-    font-family: 'Barlow', sans-serif;
-  }
-  .login-card input:focus { border-color: var(--accent-dim); box-shadow: 0 0 0 3px rgba(127,199,255,0.12); }
-  .login-card button {
-    width: 100%; background: var(--accent); color: #06121c; border: none; border-radius: 9px;
-    padding: 12px 0; font-weight: 700; font-size: 15px; cursor: pointer; font-family: 'Barlow', sans-serif;
-  }
-  .login-card button:hover { background: #9ad4ff; }
-  .login-error { color: var(--warn); font-size: 12.5px; margin: -6px 0 14px; }
-
-  /* ---------- HEADER ---------- */
-  .header { padding: 22px 20px 18px; border-bottom: 1px solid var(--border-soft); }
-  .header-inner { max-width: 760px; margin: 0 auto; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .logo-mark {
-    width: 34px; height: 34px; border-radius: 6px; background: linear-gradient(160deg, #1a2530, #0d1319);
-    border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
-    color: var(--accent); flex-shrink: 0;
-  }
-  .title-block h1 { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 26px; margin: 0; line-height: 1.1; }
-  .title-block p { margin: 2px 0 0; color: var(--text-dim); font-size: 13.5px; }
-  .sync-info {
-    margin-left: auto; display: flex; align-items: center; gap: 6px;
-    font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-faint);
-  }
-  .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); animation: pulse 2s infinite; }
+  /* ---------- Animaciones base ---------- */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes popIn { from { opacity: 0; transform: scale(.94) translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes sheetIn { from { transform: translateY(100%); } to { transform: none; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes pulse {
     0% { box-shadow: 0 0 0 0 rgba(79,214,153,0.5); }
     70% { box-shadow: 0 0 0 6px rgba(79,214,153,0); }
     100% { box-shadow: 0 0 0 0 rgba(79,214,153,0); }
   }
+  .anim .enter, .pop { animation: fadeUp .6s var(--ease) backwards; animation-delay: calc(var(--i, 0) * 55ms); }
+  .pop { animation-duration: .45s; animation-delay: calc(var(--i, 0) * 50ms); }
+  .spin { animation: spin 1s linear infinite; }
+
+  /* ---------- LOGIN ---------- */
+  .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .login-card {
+    width: 100%; max-width: 360px; background: linear-gradient(180deg, rgba(17,23,30,.92), rgba(14,20,26,.92));
+    border: 1px solid var(--border-soft); border-radius: 18px; padding: 32px 26px; backdrop-filter: blur(10px);
+    box-shadow: 0 30px 80px -30px rgba(0,0,0,.7); animation: popIn .6s var(--ease) both;
+  }
+  .login-card .logo-mark { margin: 0 auto 16px; width: 46px; height: 46px; border-radius: 12px; }
+  .login-card h1 { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; text-align: center; margin: 0 0 4px; }
+  .login-card p.sub { text-align: center; color: var(--text-dim); font-size: 13.5px; margin: 0 0 24px; }
+  .login-card label { display: block; font-size: 12.5px; color: var(--text-dim); margin-bottom: 6px; }
+  .login-card input {
+    width: 100%; background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px; color: var(--text); font-size: 15px; margin-bottom: 14px; outline: none;
+    font-family: 'Barlow', sans-serif; transition: border-color .2s, box-shadow .2s;
+  }
+  .login-card input:focus { border-color: var(--accent-dim); box-shadow: 0 0 0 3px rgba(127,199,255,0.14); }
+  .login-card button[type=submit] {
+    width: 100%; background: var(--accent); color: #06121c; border: none; border-radius: 10px;
+    padding: 13px 0; font-weight: 700; font-size: 15.5px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: transform .15s var(--ease), background .2s;
+  }
+  .login-card button[type=submit]:hover { background: #9ad4ff; }
+  .login-card button[type=submit]:active { transform: scale(.98); }
+  .login-card button[disabled] { opacity: .7; cursor: wait; }
+  .login-error { color: var(--warn); font-size: 13px; margin: -6px 0 14px; animation: fadeIn .3s; }
+  .shake { animation: shake .4s; }
+  @keyframes shake { 20%,60% { transform: translateX(-6px); } 40%,80% { transform: translateX(6px); } }
+
+  /* ---------- HEADER ---------- */
+  .header {
+    position: sticky; top: 0; z-index: 20; padding: 14px 20px;
+    background: rgba(7,10,15,.7); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .header-inner { max-width: 780px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+  .logo-mark {
+    width: 36px; height: 36px; border-radius: 9px; background: linear-gradient(160deg, #1d2a36, #0d1319);
+    border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+    color: var(--accent); flex-shrink: 0; box-shadow: 0 0 18px -6px var(--accent);
+  }
+  .title-block h1 { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 23px; margin: 0; line-height: 1.1; }
+  .title-block p { margin: 1px 0 0; color: var(--text-dim); font-size: 12.5px; }
+  .sync-info { margin-left: auto; display: flex; align-items: center; gap: 6px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-faint); }
+  .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); animation: pulse 2s infinite; }
   .logout-btn {
     background: transparent; border: 1px solid var(--border); color: var(--text-dim);
-    border-radius: 6px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
-    cursor: pointer; flex-shrink: 0;
+    border-radius: 9px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0; transition: all .2s;
   }
-  .logout-btn:hover { color: var(--warn); border-color: rgba(255,106,85,0.4); }
+  .logout-btn:hover { color: var(--warn); border-color: rgba(255,106,85,0.4); background: rgba(255,106,85,.06); }
 
-  .content { max-width: 760px; margin: 0 auto; padding: 18px 20px 0; }
+  .content { max-width: 780px; margin: 0 auto; padding: 20px 20px 0; }
+  .quake { animation: quake .5s; }
+  @keyframes quake { 10% { transform: translate(-7px,3px); } 30% { transform: translate(6px,-4px); } 50% { transform: translate(-5px,-2px); } 70% { transform: translate(3px,3px); } 90% { transform: translate(-1px,1px); } }
 
-  .tabs { display: flex; gap: 6px; background: var(--panel); border: 1px solid var(--border-soft); border-radius: 10px; padding: 4px; }
-  .tab-btn {
-    flex: 1; background: transparent; border: none; color: var(--text-dim);
-    font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 17px;
-    padding: 10px 8px; border-radius: 7px; cursor: pointer; display: flex; align-items: center;
-    justify-content: center; gap: 7px;
+  /* ---------- HERO (dinero) ---------- */
+  .hero { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  @media (max-width: 520px) { .hero { grid-template-columns: 1fr; } }
+  .money-card {
+    position: relative; overflow: hidden; text-align: left; color: var(--text); cursor: pointer; width: 100%;
+    border-radius: 18px; padding: 18px 18px 16px; background: linear-gradient(160deg, rgba(20,28,37,.95), rgba(12,17,23,.95));
+    border: 1px solid var(--border-soft); transition: transform .3s var(--ease), border-color .3s, box-shadow .3s;
   }
-  .tab-btn.active { background: var(--panel-2); color: var(--text); box-shadow: inset 0 0 0 1px var(--border); }
-  .tab-btn .pill {
-    font-family: 'IBM Plex Mono', monospace; font-size: 11px; background: var(--warn-dim); color: var(--warn);
-    padding: 1px 6px; border-radius: 20px;
+  .money-card:hover { transform: translateY(-3px); }
+  .money-card::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.09) 50%, transparent 65%);
+    transform: translateX(-130%); animation: shine 6s ease-in-out infinite;
   }
+  .money-card.pend::after { animation-delay: 1.4s; }
+  @keyframes shine { 0%, 55% { transform: translateX(-130%); } 100% { transform: translateX(130%); } }
+  .money-card.ok { border-color: rgba(79,214,153,.32); box-shadow: 0 0 46px -24px var(--ok); }
+  .money-card.pend { border-color: rgba(127,199,255,.32); box-shadow: 0 0 46px -24px var(--accent); }
+  .money-card .lbl { font-size: 11.5px; text-transform: uppercase; letter-spacing: .12em; color: var(--text-dim); display: flex; align-items: center; gap: 7px; }
+  .money-card .lbl svg { width: 14px; height: 14px; }
+  .money-card.ok .lbl svg, .money-card.ok .big { color: var(--ok); }
+  .money-card.pend .lbl svg, .money-card.pend .big { color: var(--accent); }
+  .money-card .big { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: clamp(24px, 6.4vw, 33px); margin-top: 10px; white-space: nowrap; letter-spacing: -.02em; }
 
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin: 16px 0; }
-  .stat { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 9px; padding: 11px 10px; }
-  .stat .num { font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 600; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .stat.warn .num { color: var(--warn); }
-  .stat.ok .num { color: var(--ok); }
-  .stat.pend .num { color: var(--accent); }
-  .stat .lbl { font-size: 11px; color: var(--text-dim); margin-top: 3px; display: block; line-height: 1.25; }
+  .progress { margin-bottom: 14px; }
+  .progress-top { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-dim); margin-bottom: 6px; font-family: 'IBM Plex Mono', monospace; }
+  .progress-track { height: 8px; border-radius: 999px; background: var(--panel-2); overflow: hidden; }
+  .progress-fill {
+    height: 100%; width: var(--p); border-radius: inherit; position: relative;
+    background: linear-gradient(90deg, #2fbf86, var(--ok), #b9ffd9); box-shadow: 0 0 14px rgba(79,214,153,.6);
+    transform-origin: left; animation: grow 1.2s var(--ease) backwards;
+  }
+  @keyframes grow { from { transform: scaleX(0); } }
 
-  .toolbar { display: flex; gap: 8px; margin-bottom: 14px; }
-  .search { flex: 1; display: flex; align-items: center; gap: 7px; background: var(--panel); border: 1px solid var(--border-soft); border-radius: 8px; padding: 0 10px; }
-  .search svg { color: var(--text-faint); flex-shrink: 0; width: 15px; height: 15px; }
-  .search input { background: transparent; border: none; outline: none; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 14.5px; padding: 9px 0; width: 100%; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 7px; background: var(--panel); border: 1px solid var(--border-soft);
+    color: var(--text-dim); border-radius: 999px; padding: 6px 12px; font-size: 12.5px; cursor: default;
+  }
+  .chip b { font-family: 'IBM Plex Mono', monospace; color: var(--text); font-weight: 600; }
+  .chip.warn { color: var(--warn); border-color: rgba(255,106,85,.4); background: rgba(255,106,85,.07); cursor: pointer; }
+  .chip.warn b { color: var(--warn); }
+  .chip.warn:hover { background: rgba(255,106,85,.14); }
+
+  /* ---------- SELECTOR DE VISTA ---------- */
+  .seg { display: flex; position: relative; background: rgba(16,22,29,.9); border: 1px solid var(--border-soft); border-radius: 14px; padding: 4px; margin-bottom: 16px; }
+  .seg .thumb {
+    position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 2); border-radius: 10px;
+    background: linear-gradient(160deg, #22303d, #1a2530); box-shadow: inset 0 0 0 1px var(--border), 0 0 20px -8px var(--accent);
+  }
+  .seg[data-view="cal"] .thumb { transform: translateX(100%); }
+  .seg .thumb.slide { animation: thumbSlide .5s var(--ease); }
+  @keyframes thumbSlide { from { transform: translateX(var(--from)); } }
+  .seg button {
+    position: relative; flex: 1; background: transparent; border: none; color: var(--text-dim); cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 17px; padding: 10px 8px;
+    display: flex; align-items: center; justify-content: center; gap: 8px; transition: color .25s;
+  }
+  .seg button.active { color: var(--text); }
+  .seg button svg { width: 17px; height: 17px; }
+
+  /* ---------- TOOLBAR / FILTROS ---------- */
+  .search {
+    display: flex; align-items: center; gap: 8px; background: rgba(16,22,29,.9); margin-bottom: 12px;
+    border: 1px solid var(--border-soft); border-radius: 12px; padding: 0 13px; transition: border-color .2s, box-shadow .2s;
+  }
+  .search:focus-within { border-color: var(--accent-dim); box-shadow: 0 0 0 3px rgba(127,199,255,0.1); }
+  .search svg { color: var(--text-faint); flex-shrink: 0; width: 16px; height: 16px; }
+  .search input { background: transparent; border: none; outline: none !important; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 15px; padding: 12px 0; width: 100%; }
   .search input::placeholder { color: var(--text-faint); }
+  .filters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 14px; scrollbar-width: none; }
+  .filters::-webkit-scrollbar { display: none; }
+  .fchip {
+    flex-shrink: 0; background: transparent; border: 1px solid var(--border); color: var(--text-dim); border-radius: 999px;
+    padding: 6px 14px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .25s var(--ease);
+  }
+  .fchip:hover { color: var(--text); border-color: var(--accent-dim); }
+  .fchip.active { color: #06121c; background: var(--accent); border-color: var(--accent); font-weight: 700; box-shadow: 0 0 18px -4px rgba(127,199,255,.7); }
 
   .add-btn, .submit-btn {
-    background: var(--accent); color: #06121c; border: none; border-radius: 8px; padding: 0 16px;
-    font-family: 'Barlow', sans-serif; font-weight: 600; font-size: 14.5px; display: flex;
-    align-items: center; gap: 6px; cursor: pointer; white-space: nowrap;
+    background: var(--accent); color: #06121c; border: none; border-radius: 10px; padding: 0 18px;
+    font-weight: 600; font-size: 14.5px; display: flex; align-items: center; gap: 6px;
+    cursor: pointer; white-space: nowrap; transition: transform .15s var(--ease), background .2s, box-shadow .2s;
   }
-  .add-btn:hover, .submit-btn:hover { background: #9ad4ff; }
-  .submit-btn {
-    padding: 16px 0;
-    font-size: 17px;
-    font-weight: 700;
-    border-radius: 10px;
-  }
+  .add-btn:hover, .submit-btn:hover { background: #9ad4ff; box-shadow: 0 6px 20px -8px rgba(127,199,255,.6); }
+  .add-btn:active, .submit-btn:active { transform: scale(.97); }
+  .submit-btn { padding: 15px 0; font-size: 16.5px; font-weight: 700; border-radius: 12px; width: 100%; justify-content: center; }
 
-  .list { display: flex; flex-direction: column; gap: 9px; }
-  .job { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 10px; padding: 13px 14px; position: relative; }
-  .job.has-warning { border-color: rgba(255,106,85,0.35); }
-  .job-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+  .fab {
+    position: fixed; right: 22px; bottom: 24px; z-index: 40; width: 60px; height: 60px; border-radius: 50%; border: none;
+    background: linear-gradient(145deg, #a6dbff, var(--accent) 45%, #5aa9e6); color: #06121c; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px -6px rgba(127,199,255,.7);
+    transition: transform .35s var(--ease);
+  }
+  .fab svg { width: 26px; height: 26px; transition: transform .35s var(--ease); }
+  .fab:hover { transform: scale(1.1); }
+  .fab:hover svg { transform: rotate(90deg); }
+  .fab:active { transform: scale(.94); }
+  .fab::before { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--accent); animation: fabRing 2.4s ease-out infinite; }
+  @keyframes fabRing { from { transform: scale(1); opacity: .7; } to { transform: scale(1.7); opacity: 0; } }
+
+  /* ---------- LISTA / TARJETAS ---------- */
+  .list { display: flex; flex-direction: column; gap: 10px; }
+  .job {
+    background: rgba(16,22,29,.92); border: 1px solid var(--border-soft); border-radius: 15px; padding: 14px 15px;
+    position: relative; transition: transform .25s var(--ease), border-color .25s, box-shadow .25s;
+  }
+  .job:hover { transform: translateY(-3px); border-color: var(--border); box-shadow: 0 16px 34px -18px rgba(0,0,0,.9); }
+  .job.has-warning { border-color: rgba(255,106,85,0.3); }
+  .job.fresh::before, .job.paid-now::before {
+    content: ""; position: absolute; inset: -2px; border-radius: 17px; pointer-events: none;
+    border: 2px solid var(--accent); box-shadow: 0 0 30px var(--accent); animation: freshRing 2s ease-out forwards;
+  }
+  .job.paid-now::before { border-color: var(--gold); box-shadow: 0 0 34px var(--gold); }
+  @keyframes freshRing { 0% { opacity: 1; transform: scale(.97); } 100% { opacity: 0; transform: scale(1.03); } }
+  .job-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 7px; }
   .job-fecha { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--accent); }
-  .job-lugar { font-size: 15.5px; font-weight: 500; margin-bottom: 9px; padding-right: 60px; }
+  .job-lugar-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; padding-right: 64px; }
+  .job-lugar { font-size: 16.5px; font-weight: 600; word-break: break-word; }
   .job-meta { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
-  .tag { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); color: var(--text-dim); }
+  .job-meta + .job-meta { margin-top: 8px; }
+  .tag { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; padding: 4px 9px; border-radius: 7px; border: 1px solid var(--border); color: var(--text-dim); }
+  .tag svg { width: 13px; height: 13px; }
   .tag.warn { color: var(--warn); border-color: rgba(255,106,85,0.4); background: rgba(255,106,85,0.07); }
-  .tag.ok-tag {
-    color: var(--ok); border-color: rgba(79,214,153,0.4); background: rgba(79,214,153,0.08); cursor: pointer;
-  }
-  .cobrar-btn {
-    display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600;
-    padding: 6px 10px; border-radius: 6px; border: 1px solid var(--accent-dim); color: var(--accent);
-    background: rgba(127,199,255,0.07); cursor: pointer; font-family: 'Barlow', sans-serif;
-  }
-  .cobrar-btn:hover { background: rgba(127,199,255,0.15); }
-  .cobrar-btn svg { width: 14px; height: 14px; }
-  .job-monto { font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: var(--text); margin-left: auto; border: none; padding: 0; }
+  .tag.ok-tag { color: var(--ok); border-color: rgba(79,214,153,0.4); background: rgba(79,214,153,0.08); cursor: pointer; transition: background .2s; }
+  .tag.ok-tag:hover { background: rgba(79,214,153,0.16); }
 
-  .job-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 4px; }
-  .icon-btn { background: transparent; border: none; color: var(--text-faint); cursor: pointer; padding: 5px; border-radius: 5px; display: flex; }
+  .sent-pill {
+    display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px 3px 6px; border-radius: 999px; white-space: nowrap; line-height: 1.2;
+  }
+  .sent-pill svg { width: 12px; height: 12px; }
+  .sent-pill.yes { color: #06281a; background: var(--ok); box-shadow: 0 0 0 3px rgba(79,214,153,.14); }
+  .sent-pill.no { color: var(--text-faint); background: transparent; border: 1px dashed var(--border); font-weight: 600; }
+
+  .cobrar-btn {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700;
+    padding: 8px 14px; border-radius: 9px; border: 1px solid rgba(255,210,74,.5); color: var(--gold);
+    background: linear-gradient(160deg, rgba(255,210,74,.14), rgba(255,160,40,.06)); cursor: pointer; transition: all .25s var(--ease);
+  }
+  .cobrar-btn:hover { background: rgba(255,210,74,.22); box-shadow: 0 0 22px -4px rgba(255,210,74,.6); transform: translateY(-1px); }
+  .cobrar-btn:active { transform: scale(.96); }
+  .cobrar-btn svg { width: 14px; height: 14px; }
+  .job-monto { font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: var(--text); margin-left: auto; border: none; padding: 0; font-size: 15px; }
+
+  .job-actions { position: absolute; top: 11px; right: 11px; display: flex; gap: 2px; }
+  .icon-btn { background: transparent; border: none; color: var(--text-faint); cursor: pointer; padding: 6px; border-radius: 7px; display: flex; transition: all .2s; }
   .icon-btn svg { width: 15px; height: 15px; }
   .icon-btn:hover { color: var(--text); background: var(--panel-2); }
   .icon-btn.danger:hover { color: var(--warn); }
-
-  .confirm-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-dim); }
-  .confirm-row button { font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; border: none; border-radius: 5px; padding: 4px 9px; cursor: pointer; }
+  .confirm-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-dim); animation: fadeIn .25s; }
+  .confirm-row button { font-size: 12.5px; font-weight: 600; border: none; border-radius: 6px; padding: 4px 10px; cursor: pointer; }
   .confirm-row .yes { background: var(--warn); color: #240a06; }
   .confirm-row .no { background: var(--panel-2); color: var(--text-dim); }
 
-  .empty { text-align: center; padding: 46px 20px; color: var(--text-dim); border: 1px dashed var(--border); border-radius: 10px; }
-  .empty h3 { font-family: 'Barlow Condensed', sans-serif; color: var(--text); font-size: 19px; margin: 10px 0 6px; }
-  .empty p { font-size: 13.5px; margin: 0 0 14px; }
-  .empty .add-btn { margin: 0 auto; }
+  .empty { text-align: center; padding: 44px 20px; color: var(--text-dim); border: 1px dashed var(--border); border-radius: 16px; animation: fadeUp .5s var(--ease); background: rgba(16,22,29,.5); }
+  .empty h3 { font-family: 'Barlow Condensed', sans-serif; color: var(--text); font-size: 20px; margin: 0 0 6px; }
+  .empty p { font-size: 13.5px; margin: 0 0 16px; }
+  .empty .add-btn { margin: 0 auto; padding: 11px 18px; }
+  .loading-wrap { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 70px 0; color: var(--text-dim); font-size: 14px; }
 
-  .loading-wrap { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 60px 0; color: var(--text-dim); font-size: 14px; }
-  .spin { animation: spin 1s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  /* ---------- CALENDARIO ---------- */
+  .cal { background: rgba(16,22,29,.92); border: 1px solid var(--border-soft); border-radius: 18px; padding: 16px; margin-bottom: 16px; overflow: hidden; }
+  .cal-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .cal-title { flex: 1; min-width: 0; }
+  .cal-title h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 700; margin: 0; text-transform: capitalize; line-height: 1.1; }
+  .cal-title p { margin: 3px 0 0; font-size: 12.5px; color: var(--text-dim); font-family: 'IBM Plex Mono', monospace; }
+  .cal-nav { display: flex; gap: 6px; }
+  .cal-nav button {
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text-dim); border-radius: 10px;
+    height: 36px; min-width: 36px; padding: 0 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12.5px; font-weight: 600; transition: all .2s;
+  }
+  .cal-nav button:hover { color: var(--text); border-color: var(--accent-dim); transform: translateY(-1px); }
+  .cal-nav svg { width: 17px; height: 17px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .cal-grid.slide-next { animation: slideNext .45s var(--ease); }
+  .cal-grid.slide-prev { animation: slidePrev .45s var(--ease); }
+  @keyframes slideNext { from { opacity: 0; transform: translateX(36px); } }
+  @keyframes slidePrev { from { opacity: 0; transform: translateX(-36px); } }
+  .cal-dow { text-align: center; font-size: 10.5px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; padding: 2px 0 6px; }
+  .cal-day {
+    position: relative; aspect-ratio: 1 / 1.08; min-height: 52px; background: var(--panel-2); border: 1px solid transparent; border-radius: 11px;
+    padding: 6px 5px 5px; cursor: pointer; text-align: left; color: var(--text); display: flex; flex-direction: column;
+    transition: transform .25s var(--ease), border-color .25s, box-shadow .25s, background .25s;
+  }
+  .cal-day.blank { visibility: hidden; pointer-events: none; }
+  .cal-day:hover { transform: translateY(-3px) scale(1.06); border-color: var(--accent-dim); z-index: 2; box-shadow: 0 10px 22px -10px rgba(0,0,0,.9); }
+  .cal-day .n { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-faint); }
+  .cal-day.has .n { color: var(--text); font-weight: 600; }
+  .cal-day.has { background: linear-gradient(160deg, #1d2a37, #172029); }
+  .cal-day.today { border-color: var(--accent); }
+  .cal-day.today .n { color: var(--accent); }
+  .cal-day.sel { background: rgba(127,199,255,.16); border-color: var(--accent); box-shadow: 0 0 26px -6px var(--accent); transform: translateY(-2px); }
+  .dots { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; align-items: center; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; animation: dotPop .5s var(--ease) backwards; animation-delay: calc(var(--i) * 70ms + .25s); }
+  @keyframes dotPop { from { transform: scale(0); } 60% { transform: scale(1.5); } }
+  .dot.paid { background: var(--gold); box-shadow: 0 0 9px var(--gold); }
+  .dot.sent { background: var(--ok); box-shadow: 0 0 9px var(--ok); }
+  .dot.unsent { border: 1.6px dashed var(--warn); }
+  .dots .more { font-size: 10px; color: var(--text-dim); font-family: 'IBM Plex Mono', monospace; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; font-size: 12px; color: var(--text-dim); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend .dot { animation: none; }
+  .day-panel { animation: fadeUp .45s var(--ease); }
+  .day-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+  .day-head h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; margin: 0; text-transform: capitalize; }
+  .day-head .add-btn { padding: 8px 14px; font-size: 13.5px; }
 
-  .overlay { position: fixed; inset: 0; background: rgba(4,7,10,0.72); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
+  /* ---------- MODAL ---------- */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(4,7,10,0.72); backdrop-filter: blur(4px);
+    display: flex; align-items: flex-end; justify-content: center; z-index: 50; animation: fadeIn .25s;
+  }
   @media (min-width: 640px) { .overlay { align-items: center; padding: 20px; } }
-  .modal { background: var(--panel); border: 1px solid var(--border); border-bottom: none; border-radius: 16px 16px 0 0; width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto; padding: 20px 20px 24px; }
-  @media (min-width: 640px) { .modal { border-radius: 14px; border-bottom: 1px solid var(--border); } }
-  .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-  .modal-head h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 600; margin: 0; }
-  .modal-head button { background: transparent; border: none; color: var(--text-dim); cursor: pointer; padding: 4px; }
-
-  .field { margin-bottom: 14px; }
+  .modal {
+    background: var(--panel); border: 1px solid var(--border); border-bottom: none; border-radius: 20px 20px 0 0;
+    width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; padding: 22px 22px 26px; animation: sheetIn .4s var(--ease);
+  }
+  @media (min-width: 640px) { .modal { border-radius: 18px; border-bottom: 1px solid var(--border); animation: popIn .35s var(--ease); } }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .modal-head h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 600; margin: 0; }
+  .modal-head button { background: transparent; border: none; color: var(--text-dim); cursor: pointer; padding: 6px; border-radius: 8px; transition: all .2s; }
+  .modal-head button:hover { color: var(--text); background: var(--panel-2); }
+  .field { margin-bottom: 15px; }
   .field label { display: block; font-size: 12.5px; color: var(--text-dim); margin-bottom: 6px; }
   .field .hint { font-size: 11.5px; color: var(--text-faint); margin-top: 5px; }
   .field input[type="text"], .field input[type="date"], .field input[type="number"] {
-    width: 100%; background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
-    padding: 10px 11px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 14.5px; outline: none;
+    width: 100%; background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 11px 12px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 15px; outline: none;
+    transition: border-color .2s, box-shadow .2s; color-scheme: dark;
   }
   .field input:focus { border-color: var(--accent-dim); box-shadow: 0 0 0 3px rgba(127,199,255,0.12); }
-  .persona-select, .bool-select { display: flex; gap: 8px; }
-  .persona-select button, .bool-select button {
+  .bool-select { display: flex; gap: 8px; }
+  .bool-select button {
     flex: 1; background: var(--panel-2); border: 1px solid var(--border); color: var(--text-dim);
-    border-radius: 8px; padding: 9px 0; font-family: 'Barlow', sans-serif; font-weight: 500; font-size: 14px; cursor: pointer;
+    border-radius: 10px; padding: 10px 0; font-weight: 500; font-size: 14px; cursor: pointer; transition: all .2s;
   }
-  .persona-select button.sel, .bool-select button.sel { border-color: var(--accent); color: var(--text); background: rgba(127,199,255,0.09); }
-  .bool-select button.sel.no { border-color: var(--warn); color: var(--text); background: rgba(255,106,85,0.09); }
-  .save-error { color: var(--warn); font-size: 12.5px; margin-bottom: 10px; }
+  .bool-select button.sel { border-color: var(--ok); color: var(--text); background: rgba(79,214,153,0.1); }
+  .bool-select button.sel.no { border-color: var(--warn); background: rgba(255,106,85,0.09); }
+  .save-error { color: var(--warn); font-size: 13px; margin-bottom: 12px; animation: fadeIn .3s; }
   .amount-prefix { position: relative; }
-  .amount-prefix span { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-faint); font-family: 'IBM Plex Mono', monospace; font-size: 14px; }
+  .amount-prefix span { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-faint); font-family: 'IBM Plex Mono', monospace; font-size: 14px; }
   .amount-prefix input { padding-left: 30px !important; }
+
+  /* ---------- EFECTOS ESPECIALES ---------- */
+  .flash { position: fixed; inset: 0; z-index: 150; pointer-events: none; animation: flashA .9s ease-out forwards;
+    background: radial-gradient(circle at var(--x) var(--y), rgba(255,226,120,.55), rgba(255,170,40,.18) 30%, transparent 60%); }
+  .flash.blue { background: radial-gradient(circle at var(--x) var(--y), rgba(160,200,255,.5), rgba(150,110,255,.2) 30%, transparent 60%); }
+  @keyframes flashA { from { opacity: 1; } to { opacity: 0; } }
+  .epic { position: fixed; left: 50%; top: 34%; z-index: 300; text-align: center; pointer-events: none; width: 94vw; transform: translate(-50%, -50%); animation: epicLife 2.4s var(--ease) forwards; }
+  .epic-main {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: clamp(46px, 14vw, 96px); letter-spacing: .04em; line-height: 1;
+    background: linear-gradient(180deg, #fff7c9, #ffd24a 45%, #ff9a1f); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 18px rgba(255,190,40,.75)) drop-shadow(0 4px 0 rgba(120,60,0,.5));
+  }
+  .epic.magic .epic-main { background: linear-gradient(180deg, #fff, #9fd8ff 45%, #b58bff); -webkit-background-clip: text; background-clip: text; font-size: clamp(36px, 10.5vw, 72px); filter: drop-shadow(0 0 20px rgba(140,160,255,.85)); }
+  .epic-sub { margin-top: 10px; font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: clamp(18px, 5vw, 30px); color: #fff3c4; text-shadow: 0 0 16px rgba(255,200,60,.85); }
+  .epic.magic .epic-sub { color: #dbe9ff; text-shadow: 0 0 16px rgba(130,160,255,.85); font-size: clamp(14px, 4vw, 20px); }
+  @keyframes epicLife {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(.2) rotate(-6deg); filter: blur(12px); }
+    14% { opacity: 1; transform: translate(-50%, -50%) scale(1.18) rotate(1.5deg); filter: blur(0); }
+    24% { transform: translate(-50%, -50%) scale(1); }
+    78% { opacity: 1; transform: translate(-50%, -56%) scale(1.02); }
+    100% { opacity: 0; transform: translate(-50%, -70%) scale(1.08); filter: blur(6px); }
+  }
+
+  /* ---------- VIDEO DE FONDO ---------- */
+  #vbg { position: fixed; inset: 0; z-index: -2; background: #05070b url(fondos/fondo-1.jpg) center / cover no-repeat; overflow: hidden; }
+  #vbg video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.8s ease; }
+  #vbg video.on { opacity: 1; }
+  #vscrim { position: fixed; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(5,8,12,.5), rgba(5,8,12,.72)); }
+  #bg { opacity: .55; mix-blend-mode: screen; }
+  /* El fondo sólido va solo en <html>; si <body> lo tuviera, taparía el video (z-index negativo). */
+  body { background: transparent; }
+
+  /* Paneles tipo vidrio para que el video se vea detrás */
+  .job, .cal, .money-card, .seg, .search, .chip, .empty, .login-card {
+    background: rgba(12,18,25,.6); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  }
+  .cal-day { background: rgba(26,35,46,.55); }
+  .cal-day.has { background: rgba(36,52,68,.62); }
+  .cal-day.sel { background: rgba(127,199,255,.2); }
+  .modal { background: rgba(14,20,27,.94); }
+
+  /* ---------- RESPONSIVE: celulares, tablets, iPad, escritorio ---------- */
+  html { -webkit-text-size-adjust: 100%; }
+  .header { padding-top: max(14px, env(safe-area-inset-top)); padding-left: max(20px, env(safe-area-inset-left)); padding-right: max(20px, env(safe-area-inset-right)); }
+  .fab { right: max(22px, env(safe-area-inset-right)); bottom: max(24px, env(safe-area-inset-bottom)); }
+  .login-wrap { min-height: 100vh; min-height: 100dvh; }
+  .modal { max-height: 90vh; max-height: 90dvh; padding-bottom: max(26px, env(safe-area-inset-bottom)); }
+  .title-block { min-width: 0; }
+  .title-block h1, .title-block p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  @media (hover: none) {
+    .field input, .search input, .login-card input { font-size: 16px; }
+    .job:hover, .money-card:hover, .cal-day:hover { transform: none; }
+  }
+  @media (max-width: 420px) {
+    .content { padding: 16px 14px 0; }
+    .title-block p, .sync-info { display: none; }
+    .cal { padding: 11px; }
+    .cal-grid { gap: 4px; }
+    .cal-day { min-height: 46px; padding: 4px 3px 3px; border-radius: 9px; }
+    .dot { width: 7px; height: 7px; }
+    .cal-title h2 { font-size: 22px; }
+    .cal-nav button { height: 34px; min-width: 34px; padding: 0 8px; }
+    .seg button { font-size: 16px; }
+  }
+  @media (min-width: 700px) {
+    .content { max-width: 880px; }
+    .cal-day { min-height: 72px; }
+    .dot { width: 10px; height: 10px; }
+  }
+  @media (min-width: 1000px) {
+    .content { max-width: 1040px; padding-top: 28px; }
+    .list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .cal-day { min-height: 84px; }
+    .money-card .big { font-size: 36px; }
+  }
+  @media (min-width: 1500px) { .content { max-width: 1180px; } }
+  @media (max-height: 520px) and (orientation: landscape) { .epic { top: 42%; } .modal { max-height: 96dvh; } }
+
 </style>
 </head>
 <body>
+  <div id="vbg" aria-hidden="true"><video muted playsinline loop preload="auto"></video><video muted playsinline loop preload="auto"></video></div>
+  <div id="vscrim" aria-hidden="true"></div>
+  <canvas id="bg"></canvas>
   <div id="app"></div>
+  <canvas id="fx"></canvas>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
@@ -207,91 +444,377 @@
       getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence
     } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
     import {
-      getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot
+      getFirestore, collection, setDoc, updateDoc, deleteDoc, doc, onSnapshot
     } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-    // =====================================================================
-    // 1) PEGÁ ACÁ TU CONFIGURACIÓN DE FIREBASE
-    //    (Configuración del proyecto > Tus apps > SDK de Firebase)
-    // =====================================================================
     const firebaseConfig = {
-    apiKey: "AIzaSyCo-COK-hq72MPXowd07sHSmNC6q4bJIR0",
-    authDomain: "trabajos-iluminacion.firebaseapp.com",
-    databaseURL: "https://trabajos-iluminacion-default-rtdb.firebaseio.com",
-    projectId: "trabajos-iluminacion",
-    storageBucket: "trabajos-iluminacion.firebasestorage.app",
-    messagingSenderId: "813955208865",
-    appId: "1:813955208865:web:c8d079c2eed49426cf02e0"
-
+      apiKey: "AIzaSyCo-COK-hq72MPXowd07sHSmNC6q4bJIR0",
+      authDomain: "trabajos-iluminacion.firebaseapp.com",
+      databaseURL: "https://trabajos-iluminacion-default-rtdb.firebaseio.com",
+      projectId: "trabajos-iluminacion",
+      storageBucket: "trabajos-iluminacion.firebasestorage.app",
+      messagingSenderId: "813955208865",
+      appId: "1:813955208865:web:c8d079c2eed49426cf02e0"
     };
-    // =====================================================================
 
     const fbApp = initializeApp(firebaseConfig);
     const auth = getAuth(fbApp);
     const db = getFirestore(fbApp);
     const trabajosCol = collection(db, "trabajos");
 
-    const PERSONAS = [
-      { id: "enzo", label: "Enzo" },
-      { id: "cesar", label: "César" },
-    ];
+    // Única cuenta autorizada a ver la información. Cualquier otra sesión se cierra.
+    // (La protección real de los datos se aplica además en las reglas de Firestore.)
+    const OWNER_EMAIL = "enzoenzoca07@gmail.com";
+    // Los documentos existentes mantienen su campo "persona"; esta vista solo muestra los de Enzo.
+    const PERSONA = "enzo";
 
-    // Mapeo opcional: si el email con el que inician sesión coincide con
-    // alguno de estos, la app abre directo en la pestaña de esa persona.
-    // Poné acá los mismos emails que creaste en Firebase Authentication.
-    const EMAIL_A_PERSONA = {
-      "enzoenzoca07@gmail.com": "enzo",
-      "celipsisvisuales@gmail.com": "cesar",
-    };
+    // Poné true para apagar video y efectos en equipos con "reducir movimiento" activado.
+    const RESPETAR_MOVIMIENTO_REDUCIDO = false;
+    const reduce = RESPETAR_MOVIMIENTO_REDUCIDO && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const pad = (n) => String(n).padStart(2, "0");
+    const isoDay = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`;
+    const rand = (a, b) => a + Math.random() * (b - a);
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    const hoy = new Date();
+    const hoyIso = isoDay(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
 
     const state = {
       user: null,
       authReady: false,
       loginError: "",
+      loggingIn: false,
       trabajos: [],
       loading: true,
-      tab: "enzo",
       query: "",
       showForm: false,
       editingId: null,
       form: emptyForm(),
       confirmDeleteId: null,
       saveError: "",
+      animate: true,
+      view: "list",          // "list" | "cal"
+      viewChanged: false,
+      filter: "todos",       // todos | porcobrar | sinenviar | cobrados
+      cal: { y: hoy.getFullYear(), m: hoy.getMonth() },
+      calDir: 0,
+      selDay: null,
+      newId: null,
+      paidId: null,
     };
 
-    function emptyForm(persona) {
-      return {
-        persona: persona || "enzo",
-        fecha: new Date().toISOString().slice(0, 10),
-        lugar: "",
-        facturador: "",
-        monto: "",
-        facturaEnviada: false,
-        cobrado: false,
-      };
+    function emptyForm(fecha) {
+      return { fecha: fecha || hoyIso, lugar: "", facturador: "", monto: "", facturaEnviada: false };
     }
 
+    const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     function money(n) {
-      const num = Number(n) || 0;
-      return num.toLocaleString("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
+      return (Number(n) || 0).toLocaleString("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
     }
     function fechaCorta(iso) {
       if (!iso) return "";
       const [y, m, d] = iso.split("-");
       return `${d}/${m}/${y}`;
     }
+    function fechaLarga(iso) {
+      const [y, m, d] = iso.split("-").map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
+    }
 
+    /* =====================================================================
+       VIDEO DE FONDO: pantalla completa, cambia cada 15 s con fundido.
+       Para sumar más fondos: copiá el video a la carpeta "fondos" (versión
+       hd 1280px y sd 854px, sin audio) y agregalo a esta lista.
+       ===================================================================== */
+    const FONDOS = Array.from({ length: 17 }, (_, i) => ({
+      hd: `fondos/fondo-${i + 1}-hd.mp4`, sd: `fondos/fondo-${i + 1}-sd.mp4`,
+    })).sort(() => Math.random() - 0.5); // orden distinto en cada visita
+    const FONDO_CADA_MS = 15000;
+    (function iniciarFondos() {
+      const vids = [...document.querySelectorAll("#vbg video")];
+      const ahorro = navigator.connection && navigator.connection.saveData;
+      if (!vids.length || reduce || ahorro || !FONDOS.length) return; // queda solo la imagen
+      let cur = 0, idx = 0;
+      const srcDe = (f) => (innerWidth <= 720 ? f.sd : f.hd);
+      function cambiar(primero) {
+        const f = FONDOS[idx++ % FONDOS.length];
+        const prev = vids[cur], next = vids[cur ^ 1], src = srcDe(f);
+        const mostrar = () => {
+          if (!primero && FONDOS.length === 1 && next.duration) next.currentTime = rand(0, Math.max(0, next.duration - 1));
+          next.play().then(() => {
+            next.classList.add("on");
+            if (!primero) { prev.classList.remove("on"); setTimeout(() => prev.pause(), 2000); }
+            cur ^= 1;
+          }).catch(() => {});
+        };
+        if (next.dataset.src !== src) {
+          next.dataset.src = src; next.muted = true; next.playsInline = true;
+          next.src = src;
+          next.addEventListener("loadeddata", mostrar, { once: true });
+          next.load();
+        } else mostrar();
+      }
+      cambiar(true);
+      setInterval(() => { if (!document.hidden) cambiar(false); }, FONDO_CADA_MS);
+    })();
+
+    /* =====================================================================
+       FONDO ANIMADO: haces de luz de escenario + polvo flotante
+       ===================================================================== */
+    const bgC = document.getElementById("bg");
+    const bctx = bgC.getContext("2d");
+    const fxC = document.getElementById("fx");
+    const fx = fxC.getContext("2d");
+    let W = 0, H = 0, mouseX = 0.5;
+
+    function sizeCanvases() {
+      const d = Math.min(window.devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      for (const c of [bgC, fxC]) {
+        c.width = W * d; c.height = H * d;
+        c.getContext("2d").setTransform(d, 0, 0, d, 0, 0);
+      }
+    }
+    sizeCanvases();
+    addEventListener("resize", sizeCanvases);
+    addEventListener("pointermove", (e) => { mouseX = e.clientX / Math.max(1, innerWidth); }, { passive: true });
+
+    const beams = [
+      { x: 0.12, hue: 205, ph: 0.0, sp: 0.00042, w: 0.10 },
+      { x: 0.38, hue: 268, ph: 1.7, sp: 0.00031, w: 0.12 },
+      { x: 0.64, hue: 160, ph: 3.1, sp: 0.00038, w: 0.09 },
+      { x: 0.88, hue: 215, ph: 4.6, sp: 0.00028, w: 0.11 },
+    ];
+    const dust = Array.from({ length: 70 }, () => ({
+      x: Math.random(), y: Math.random(), r: rand(0.6, 2.2), s: rand(0.00004, 0.00016), ph: rand(0, 6.28),
+    }));
+
+    function drawBg(t) {
+      bctx.clearRect(0, 0, W, H);
+      bctx.globalCompositeOperation = "lighter";
+      const len = Math.hypot(W, H) * 1.05;
+      for (const b of beams) {
+        const ang = Math.sin(t * b.sp + b.ph) * 0.5 + (mouseX - 0.5) * 0.35;
+        const ox = b.x * W, oy = -30;
+        const ex = ox + Math.sin(ang) * len, ey = oy + Math.cos(ang) * len;
+        const nx = Math.cos(ang), ny = -Math.sin(ang), half = len * Math.tan(b.w);
+        const g = bctx.createLinearGradient(ox, oy, ex, ey);
+        g.addColorStop(0, `hsla(${b.hue},90%,65%,.20)`);
+        g.addColorStop(0.55, `hsla(${b.hue},90%,60%,.06)`);
+        g.addColorStop(1, `hsla(${b.hue},90%,60%,0)`);
+        bctx.fillStyle = g;
+        bctx.beginPath();
+        bctx.moveTo(ox, oy);
+        bctx.lineTo(ex + nx * half, ey + ny * half);
+        bctx.lineTo(ex - nx * half, ey - ny * half);
+        bctx.closePath();
+        bctx.fill();
+      }
+      for (const p of dust) {
+        const y = ((p.y - t * p.s) % 1 + 1) % 1;
+        const x = p.x + Math.sin(t * 0.0003 + p.ph) * 0.012;
+        bctx.globalAlpha = 0.25 + 0.35 * Math.sin(t * 0.001 + p.ph) ** 2;
+        bctx.fillStyle = "#cfe8ff";
+        bctx.beginPath();
+        bctx.arc(x * W, y * H, p.r, 0, 6.2832);
+        bctx.fill();
+      }
+      bctx.globalAlpha = 1;
+    }
+    function bgLoop(t) {
+      if (!document.hidden) drawBg(t);
+      requestAnimationFrame(bgLoop);
+    }
+    if (reduce) drawBg(2000); else requestAnimationFrame(bgLoop);
+
+    /* =====================================================================
+       EFECTOS ESPECIALES (partículas)
+       ===================================================================== */
+    let parts = [];
+    let fxRunning = false;
+
+    function P(o) {
+      parts.push({ life: 0, max: 70, x: 0, y: 0, vx: 0, vy: 0, g: 0, drag: 0.985, size: 3, color: "#fff", type: "spark", rot: 0, vr: 0, swirl: 0, maxR: 200, ...o });
+    }
+    function startFx() {
+      if (!fxRunning) { fxRunning = true; requestAnimationFrame(fxLoop); }
+    }
+    function fxLoop() {
+      fx.clearRect(0, 0, W, H);
+      parts = parts.filter((p) => p.life < p.max);
+      for (const p of parts) {
+        p.life++;
+        if (p.life <= 0) continue;
+        const t = p.life / p.max;
+        if (p.swirl) {
+          const c = Math.cos(p.swirl), s = Math.sin(p.swirl);
+          const vx = p.vx * c - p.vy * s;
+          p.vy = p.vx * s + p.vy * c; p.vx = vx;
+        }
+        p.vx *= p.drag; p.vy = p.vy * p.drag + p.g;
+        p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+        drawParticle(p, t);
+      }
+      if (parts.length) requestAnimationFrame(fxLoop);
+      else { fxRunning = false; fx.clearRect(0, 0, W, H); }
+    }
+    function drawParticle(p, t) {
+      const a = Math.max(0, 1 - t * t * t);
+      if (p.type === "ring") {
+        const e = 1 - Math.pow(1 - t, 3);
+        fx.globalCompositeOperation = "lighter";
+        fx.globalAlpha = a; fx.strokeStyle = p.color; fx.lineWidth = 1 + 6 * (1 - t);
+        fx.beginPath(); fx.arc(p.x, p.y, p.size + (p.maxR - p.size) * e, 0, 6.2832); fx.stroke();
+      } else if (p.type === "coin") {
+        fx.globalCompositeOperation = "source-over";
+        fx.globalAlpha = Math.min(1, a * 1.6);
+        const c = Math.cos(p.rot);
+        fx.fillStyle = c > 0 ? "#ffd24a" : "#e8a200";
+        fx.strokeStyle = "#fff3b0"; fx.lineWidth = 1;
+        fx.beginPath(); fx.ellipse(p.x, p.y, Math.max(0.7, Math.abs(c) * p.size), p.size, 0, 0, 6.2832); fx.fill(); fx.stroke();
+      } else if (p.type === "streak") {
+        fx.globalCompositeOperation = "lighter";
+        fx.globalAlpha = a; fx.strokeStyle = p.color; fx.lineWidth = p.size; fx.lineCap = "round";
+        fx.beginPath(); fx.moveTo(p.x - p.vx * 3, p.y - p.vy * 3); fx.lineTo(p.x, p.y); fx.stroke();
+      } else {
+        fx.globalCompositeOperation = "lighter";
+        const s = p.size * (1 - t * 0.6) * (0.75 + 0.25 * Math.sin(p.life * 0.6));
+        fx.fillStyle = p.color;
+        fx.globalAlpha = a * 0.25; fx.beginPath(); fx.arc(p.x, p.y, s * 2.2, 0, 6.2832); fx.fill();
+        fx.globalAlpha = a; fx.save(); fx.translate(p.x, p.y); fx.rotate(p.rot); fx.beginPath();
+        for (let i = 0; i < 8; i++) {
+          const r = i % 2 ? s * 0.35 : s * 1.6, ang = i * Math.PI / 4;
+          fx.lineTo(Math.cos(ang) * r, Math.sin(ang) * r);
+        }
+        fx.closePath(); fx.fill(); fx.restore();
+      }
+      fx.globalAlpha = 1; fx.globalCompositeOperation = "source-over";
+    }
+
+    function flash(x, y, kind) {
+      const el = document.createElement("div");
+      el.className = "flash " + (kind || "");
+      el.style.setProperty("--x", x + "px"); el.style.setProperty("--y", y + "px");
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 1000);
+    }
+    function epicText(main, sub, kind) {
+      const el = document.createElement("div");
+      el.className = "epic " + (kind || "");
+      el.innerHTML = `<div class="epic-main">${esc(main)}</div><div class="epic-sub">${esc(sub)}</div>`;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 2500);
+    }
+    function quake() {
+      const c = document.querySelector(".content");
+      if (!c) return;
+      c.classList.remove("quake"); void c.offsetWidth; c.classList.add("quake");
+    }
+
+    // ¡Cobrado! lluvia de monedas, ondas de choque y destellos dorados
+    function fxCobrado(x, y, monto) {
+      epicText("¡COBRADO!", "+ " + money(monto), "gold");
+      if (reduce) return;
+      flash(x, y, "");
+      P({ type: "ring", x, y, size: 8, maxR: 300, color: "#ffd24a", max: 55 });
+      P({ type: "ring", x, y, size: 8, maxR: 190, color: "#fff6c8", max: 45, life: -8 });
+      P({ type: "ring", x, y, size: 8, maxR: 420, color: "#ff9a1f", max: 70, life: -16 });
+      for (let i = 0; i < 70; i++) {
+        const ang = rand(-Math.PI * 0.95, -Math.PI * 0.05), sp = rand(6, 17);
+        P({ type: "coin", x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, g: 0.36, drag: 0.985,
+            size: rand(5, 9), rot: rand(0, 6), vr: rand(0.15, 0.4), max: rand(75, 120) });
+      }
+      for (let i = 0; i < 120; i++) {
+        const ang = rand(0, 6.2832), sp = rand(2, 14);
+        P({ type: "spark", x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, g: 0.05, drag: 0.96,
+            size: rand(3, 8), color: pick(["#ffd24a", "#ffffff", "#7fffd4", "#ffe9a0"]), rot: rand(0, 3), vr: rand(-0.1, 0.1),
+            swirl: rand(-0.03, 0.03), max: rand(40, 95) });
+      }
+      for (let i = 0; i < 40; i++) {
+        const ang = rand(0, 6.2832), sp = rand(10, 24);
+        P({ type: "streak", x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, drag: 0.93, size: 2, color: "#ffd24a", max: rand(20, 38) });
+      }
+      setTimeout(() => {
+        for (let i = 0; i < 70; i++) {
+          P({ type: "spark", x: rand(0, W), y: -10, vx: rand(-0.6, 0.6), vy: rand(2, 6), g: 0.05, drag: 0.995,
+              size: rand(2.5, 6), color: pick(["#ffd24a", "#fff3b0", "#ffffff"]), vr: rand(-0.1, 0.1), max: rand(80, 150), life: -Math.floor(rand(0, 40)) });
+        }
+        startFx();
+      }, 250);
+      startFx();
+      setTimeout(quake, 160);
+    }
+
+    // ¡Magia! torbellino de estrellas azules y violetas
+    function fxMagic(x, y) {
+      epicText("¡Trabajo agregado!", "✦ una luz más en la agenda ✦", "magic");
+      if (reduce) return;
+      flash(x, y, "blue");
+      P({ type: "ring", x, y, size: 6, maxR: 260, color: "#7fc7ff", max: 55 });
+      P({ type: "ring", x, y, size: 6, maxR: 170, color: "#b58bff", max: 48, life: -8 });
+      for (let i = 0; i < 100; i++) {
+        const ang = rand(0, 6.2832), sp = rand(3, 11);
+        P({ type: "spark", x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, g: -0.02, drag: 0.965,
+            size: rand(3, 8), color: pick(["#7fc7ff", "#b58bff", "#ffffff", "#7fffd4"]), rot: rand(0, 3), vr: rand(-0.12, 0.12),
+            swirl: 0.06, max: rand(55, 110) });
+      }
+      for (let i = 0; i < 28; i++) {
+        const ang = rand(0, 6.2832), sp = rand(8, 18);
+        P({ type: "streak", x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, drag: 0.93, size: 2, color: pick(["#7fc7ff", "#c79bff"]), max: rand(20, 36) });
+      }
+      for (let i = 0; i < 36; i++) {
+        P({ type: "spark", x: x + rand(-140, 140), y: y + rand(-20, 40), vx: rand(-0.4, 0.4), vy: -rand(1, 4), g: -0.03, drag: 0.99,
+            size: rand(2, 5), color: pick(["#ffffff", "#9fd8ff", "#c79bff"]), vr: 0.05, max: rand(70, 130), life: -Math.floor(rand(0, 30)) });
+      }
+      startFx();
+    }
+
+    // Chispas pequeñas para micro-interacciones
+    function fxMini(x, y, color, n = 16) {
+      if (reduce) return;
+      for (let i = 0; i < n; i++) {
+        const ang = rand(0, 6.2832), sp = rand(1.5, 6);
+        P({ type: "spark", x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, g: 0.04, drag: 0.95, size: rand(2, 4.5),
+            color: color || pick(["#7fc7ff", "#ffffff"]), vr: rand(-0.1, 0.1), max: rand(25, 45) });
+      }
+      startFx();
+    }
+
+    /* Números que "cuentan" hasta su valor, mostrando siempre el monto entero */
+    const prevVals = {};
+    function animateNumbers() {
+      document.querySelectorAll("[data-count]").forEach((el) => {
+        const to = Number(el.dataset.count), key = el.dataset.key, from = prevVals[key] ?? 0;
+        prevVals[key] = to;
+        if (reduce || from === to) return;
+        const t0 = performance.now(), dur = 1000;
+        const tick = (now) => {
+          if (!el.isConnected) return;
+          const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+          el.textContent = money(from + (to - from) * e);
+          if (k < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+    }
+
+    /* =====================================================================
+       AUTENTICACIÓN Y DATOS
+       ===================================================================== */
     let unsubscribeTrabajos = null;
-
     setPersistence(auth, browserLocalPersistence).catch(() => {});
 
     onAuthStateChanged(auth, (user) => {
       state.authReady = true;
+      if (user && (user.email || "").toLowerCase() !== OWNER_EMAIL) {
+        state.loginError = "Esta cuenta no tiene acceso.";
+        signOut(auth);
+        return;
+      }
       state.user = user;
+      state.loggingIn = false;
       if (user) {
         state.loading = true;
-        const personaDetectada = EMAIL_A_PERSONA[(user.email || "").toLowerCase()];
-        if (personaDetectada) state.tab = personaDetectada;
+        state.animate = true;
         render();
         if (unsubscribeTrabajos) unsubscribeTrabajos();
         unsubscribeTrabajos = onSnapshot(
@@ -300,8 +823,10 @@
             const list = [];
             snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
             list.sort((a, b) => (a.fecha < b.fecha ? 1 : a.fecha > b.fecha ? -1 : (b.creadoEn || 0) - (a.creadoEn || 0)));
+            const primera = state.loading;
             state.trabajos = list;
             state.loading = false;
+            state.animate = primera;
             render();
           },
           (err) => {
@@ -320,40 +845,57 @@
 
     async function handleLogin(email, password) {
       state.loginError = "";
+      state.loggingIn = true;
+      render();
       try {
         await signInWithEmailAndPassword(auth, email, password);
       } catch (err) {
+        state.loggingIn = false;
         state.loginError = "No se pudo iniciar sesión. Revisá el usuario y la contraseña.";
         render();
+        document.querySelector(".login-card")?.classList.add("shake");
       }
     }
-
-    function handleLogout() {
-      signOut(auth);
-    }
+    function handleLogout() { signOut(auth); }
 
     async function guardarTrabajo(e) {
       e.preventDefault();
       const f = state.form;
       if (!f.lugar.trim() || !f.fecha) return;
+      const btn = e.submitter || document.querySelector(".submit-btn");
+      const r = btn ? btn.getBoundingClientRect() : null;
+      const cx = r ? r.left + r.width / 2 : innerWidth / 2;
+      const cy = r ? r.top + r.height / 2 : innerHeight / 2;
       const payload = {
-        persona: f.persona,
         fecha: f.fecha,
         lugar: f.lugar.trim(),
         facturador: f.facturador.trim(),
         monto: Number(f.monto) || 0,
         facturaEnviada: !!f.facturaEnviada,
       };
+      const esNuevo = !state.editingId;
       try {
-        if (state.editingId) {
-          // No tocamos "cobrado" acá: se maneja aparte con el botón "Ya cobré".
-          await updateDoc(doc(db, "trabajos", state.editingId), payload);
+        if (esNuevo) {
+          const ref = doc(trabajosCol);
+          state.newId = ref.id;
+          await setDoc(ref, { ...payload, persona: PERSONA, cobrado: false, creadoEn: Date.now() });
         } else {
-          await addDoc(trabajosCol, { ...payload, cobrado: false, creadoEn: Date.now() });
+          // No se tocan "persona" ni "cobrado" al editar (cobrado se maneja con "Ya cobré").
+          await updateDoc(doc(db, "trabajos", state.editingId), payload);
         }
         state.saveError = "";
+        if (esNuevo && state.view === "cal") {
+          const [yy, mm] = payload.fecha.split("-").map(Number);
+          state.cal = { y: yy, m: mm - 1 };
+          state.selDay = payload.fecha;
+        }
         cerrarForm();
+        if (esNuevo) {
+          fxMagic(cx, cy);
+          setTimeout(() => { state.newId = null; }, 2600);
+        }
       } catch (err) {
+        state.newId = null;
         state.saveError = "No se pudo guardar: " + err.message;
         render();
       }
@@ -378,132 +920,208 @@
       render();
     }
 
-    function abrirNuevo(persona) {
+    function abrirNuevo(fecha) {
       state.editingId = null;
-      state.form = emptyForm(persona || state.tab);
+      state.form = emptyForm(fecha);
       state.showForm = true;
+      state.animate = false;
       render();
     }
     function abrirEdicion(job) {
       state.editingId = job.id;
       state.form = {
-        persona: job.persona, fecha: job.fecha, lugar: job.lugar,
-        facturador: job.facturador, monto: String(job.monto), facturaEnviada: job.facturaEnviada,
-        cobrado: !!job.cobrado,
+        fecha: job.fecha, lugar: job.lugar || "", facturador: job.facturador || "",
+        monto: String(job.monto ?? ""), facturaEnviada: !!job.facturaEnviada,
       };
       state.showForm = true;
+      state.animate = false;
       render();
     }
     function cerrarForm() {
       state.showForm = false;
       state.editingId = null;
-      state.form = emptyForm(state.tab);
+      state.form = emptyForm();
+      state.animate = false;
       render();
     }
 
-    function porPersona(personaId) {
-      return state.trabajos.filter((t) => t.persona === personaId);
-    }
+    function misTrabajos() { return state.trabajos.filter((t) => t.persona === PERSONA); }
     function resumen(lista) {
-      const cobrados = lista.filter((t) => t.cobrado);
-      const porCobrar = lista.filter((t) => !t.cobrado);
-      const totalCobrado = cobrados.reduce((acc, t) => acc + (Number(t.monto) || 0), 0);
-      const totalPorCobrar = porCobrar.reduce((acc, t) => acc + (Number(t.monto) || 0), 0);
+      const totalCobrado = lista.filter((t) => t.cobrado).reduce((a, t) => a + (Number(t.monto) || 0), 0);
+      const totalPorCobrar = lista.filter((t) => !t.cobrado).reduce((a, t) => a + (Number(t.monto) || 0), 0);
       const sinFacturador = lista.filter((t) => !t.facturador || !t.facturador.trim()).length;
       const sinEnviar = lista.filter((t) => !t.facturaEnviada).length;
       return { totalCobrado, totalPorCobrar, cantidad: lista.length, sinFacturador, sinEnviar };
     }
 
+    /* =====================================================================
+       VISTAS
+       ===================================================================== */
     function renderLogin() {
       return `
         <div class="login-wrap">
           <div class="login-card">
-            <div class="logo-mark" style="width:40px;height:40px;">
-              <i data-lucide="zap"></i>
-            </div>
+            <div class="logo-mark"><i data-lucide="zap"></i></div>
             <h1>Trabajos de Iluminación</h1>
-            <p class="sub">Iniciá sesión para ver y cargar trabajos</p>
+            <p class="sub">Acceso privado</p>
             <form id="login-form">
-              <label>Usuario / Email</label>
+              <label for="login-email">Email</label>
               <input type="email" id="login-email" required autocomplete="username" />
-              <label>Contraseña</label>
+              <label for="login-password">Contraseña</label>
               <input type="password" id="login-password" required autocomplete="current-password" />
-              ${state.loginError ? `<div class="login-error">${state.loginError}</div>` : ""}
-              <button type="submit">Entrar</button>
+              ${state.loginError ? `<div class="login-error">${esc(state.loginError)}</div>` : ""}
+              <button type="submit" ${state.loggingIn ? "disabled" : ""}>
+                ${state.loggingIn ? `<i data-lucide="loader-2" class="spin"></i> Entrando...` : "Entrar"}
+              </button>
             </form>
           </div>
         </div>
       `;
     }
 
-    function renderApp() {
-      const listaActual = porPersona(state.tab);
-      const filtrada = state.query.trim()
-        ? listaActual.filter((t) => {
-            const q = state.query.trim().toLowerCase();
-            return t.lugar.toLowerCase().includes(q) || (t.facturador || "").toLowerCase().includes(q);
-          })
-        : listaActual;
-      const r = resumen(listaActual);
-      const badges = {
-        enzo: (() => { const s = resumen(porPersona("enzo")); return s.sinFacturador + s.sinEnviar; })(),
-        cesar: (() => { const s = resumen(porPersona("cesar")); return s.sinFacturador + s.sinEnviar; })(),
-      };
-
-      const tabsHtml = PERSONAS.map(p => `
-        <button class="tab-btn ${state.tab === p.id ? "active" : ""}" data-tab="${p.id}">
-          ${p.label} ${badges[p.id] > 0 ? `<span class="pill">${badges[p.id]}</span>` : ""}
-        </button>
-      `).join("");
-
-      const listHtml = filtrada.length === 0 ? `
-        <div class="empty">
-          <h3>${state.query ? "No hay resultados" : "Todavía no hay trabajos cargados"}</h3>
-          <p>${state.query ? "Probá con otro lugar o nombre de facturador." : `Agregá el primer trabajo de ${PERSONAS.find(p => p.id === state.tab)?.label}.`}</p>
-          ${!state.query ? `<button class="add-btn" data-action="nuevo"><i data-lucide="plus"></i> Agregar trabajo</button>` : ""}
-        </div>
-      ` : `
-        <div class="list">
-          ${filtrada.map(job => {
-            const faltaFacturador = !job.facturador || !job.facturador.trim();
-            const faltaEnvio = !job.facturaEnviada;
-            const tieneAlerta = faltaFacturador || faltaEnvio;
-            return `
-              <div class="job ${tieneAlerta ? "has-warning" : ""}">
-                <div class="job-actions">
-                  ${state.confirmDeleteId === job.id ? `
-                    <div class="confirm-row">
-                      ¿Borrar?
-                      <button class="yes" data-action="confirm-borrar" data-id="${job.id}">Sí</button>
-                      <button class="no" data-action="cancelar-borrar">No</button>
-                    </div>
-                  ` : `
-                    <button class="icon-btn" data-action="editar" data-id="${job.id}" title="Editar"><i data-lucide="pencil"></i></button>
-                    <button class="icon-btn danger" data-action="pedir-borrar" data-id="${job.id}" title="Borrar"><i data-lucide="trash-2"></i></button>
-                  `}
-                </div>
-                <div class="job-top"><span class="job-fecha">${fechaCorta(job.fecha)}</span></div>
-                <div class="job-lugar">${job.lugar}</div>
-                <div class="job-meta">
-                  ${faltaFacturador
-                    ? `<span class="tag warn"><i data-lucide="help-circle"></i> Falta definir quién factura</span>`
-                    : `<span class="tag">Factura: ${job.facturador}</span>`}
-                  <span class="tag job-monto">${money(job.monto)}</span>
-                </div>
-                ${faltaEnvio ? `
-                  <div class="job-meta" style="margin-top:7px;">
-                    <span class="tag warn"><i data-lucide="alert-triangle"></i> Factura no enviada</span>
-                  </div>` : ""}
-                <div class="job-meta" style="margin-top:7px;">
-                  ${job.cobrado
-                    ? `<span class="tag ok-tag" data-action="marcar-por-cobrar" data-id="${job.id}" title="Click para deshacer"><i data-lucide="check-circle-2"></i> Cobrado</span>`
-                    : `<button class="cobrar-btn" data-action="marcar-cobrado" data-id="${job.id}"><i data-lucide="banknote"></i> Ya cobré</button>`}
-                </div>
+    function jobCard(job, i, cls) {
+      const faltaFacturador = !job.facturador || !job.facturador.trim();
+      const enviada = !!job.facturaEnviada;
+      const extra = `${(faltaFacturador || !enviada) ? "has-warning" : ""} ${job.id === state.newId ? "fresh" : ""} ${job.id === state.paidId ? "paid-now" : ""}`;
+      return `
+        <div class="job ${cls} ${extra}" style="--i:${Math.min(i, 12)}">
+          <div class="job-actions">
+            ${state.confirmDeleteId === job.id ? `
+              <div class="confirm-row">
+                ¿Borrar?
+                <button class="yes" data-action="confirm-borrar" data-id="${esc(job.id)}">Sí</button>
+                <button class="no" data-action="cancelar-borrar">No</button>
               </div>
-            `;
-          }).join("")}
+            ` : `
+              <button class="icon-btn" data-action="editar" data-id="${esc(job.id)}" title="Editar" aria-label="Editar"><i data-lucide="pencil"></i></button>
+              <button class="icon-btn danger" data-action="pedir-borrar" data-id="${esc(job.id)}" title="Borrar" aria-label="Borrar"><i data-lucide="trash-2"></i></button>
+            `}
+          </div>
+          <div class="job-top"><span class="job-fecha">${fechaCorta(job.fecha)}</span></div>
+          <div class="job-lugar-row">
+            <span class="job-lugar">${esc(job.lugar)}</span>
+            ${enviada
+              ? `<span class="sent-pill yes" title="Factura enviada"><i data-lucide="send"></i> Enviado</span>`
+              : `<span class="sent-pill no" title="Factura sin enviar">Sin enviar</span>`}
+          </div>
+          <div class="job-meta">
+            ${faltaFacturador
+              ? `<span class="tag warn"><i data-lucide="help-circle"></i> Falta definir quién factura</span>`
+              : `<span class="tag">Factura: ${esc(job.facturador)}</span>`}
+            <span class="tag job-monto">${money(job.monto)}</span>
+          </div>
+          <div class="job-meta">
+            ${job.cobrado
+              ? `<span class="tag ok-tag" data-action="marcar-por-cobrar" data-id="${esc(job.id)}" title="Click para deshacer"><i data-lucide="check-circle-2"></i> Cobrado</span>`
+              : `<button class="cobrar-btn" data-action="marcar-cobrado" data-id="${esc(job.id)}"><i data-lucide="banknote"></i> Ya cobré</button>`}
+          </div>
         </div>
       `;
+    }
+
+    function renderListView(lista) {
+      const q = state.query.trim().toLowerCase();
+      const f = state.filter;
+      const conteo = {
+        todos: lista.length,
+        porcobrar: lista.filter((t) => !t.cobrado).length,
+        sinenviar: lista.filter((t) => !t.facturaEnviada).length,
+        cobrados: lista.filter((t) => t.cobrado).length,
+      };
+      const FILTROS = [["todos", "Todos"], ["porcobrar", "Por cobrar"], ["sinenviar", "Sin enviar"], ["cobrados", "Cobrados"]];
+      const filtrada = lista.filter((t) => {
+        if (f === "porcobrar" && t.cobrado) return false;
+        if (f === "sinenviar" && t.facturaEnviada) return false;
+        if (f === "cobrados" && !t.cobrado) return false;
+        return !q || (t.lugar || "").toLowerCase().includes(q) || (t.facturador || "").toLowerCase().includes(q);
+      });
+      const body = filtrada.length === 0 ? `
+        <div class="empty">
+          <h3>${q || f !== "todos" ? "No hay resultados" : "Todavía no hay trabajos cargados"}</h3>
+          <p>${q || f !== "todos" ? "Probá con otro filtro o búsqueda." : "Agregá tu primer trabajo."}</p>
+          ${!q && f === "todos" ? `<button class="add-btn" data-action="nuevo"><i data-lucide="plus"></i> Agregar trabajo</button>` : ""}
+        </div>
+      ` : `<div class="list">${filtrada.map((job, i) => jobCard(job, i, "enter")).join("")}</div>`;
+      return `
+        <div class="search">
+          <i data-lucide="search"></i>
+          <input id="search-input" placeholder="Buscar por lugar o facturador..." value="${esc(state.query)}" autocomplete="off" />
+        </div>
+        <div class="filters">
+          ${FILTROS.map(([id, label]) => `<button class="fchip ${f === id ? "active" : ""}" data-filter="${id}">${label} · ${conteo[id]}</button>`).join("")}
+        </div>
+        ${body}
+      `;
+    }
+
+    function renderCalendarView(lista) {
+      const { y, m } = state.cal;
+      const off = (new Date(y, m, 1).getDay() + 6) % 7;
+      const dim = new Date(y, m + 1, 0).getDate();
+      const byDay = {};
+      lista.forEach((t) => { (byDay[t.fecha] = byDay[t.fecha] || []).push(t); });
+      const prefix = `${y}-${pad(m + 1)}-`;
+      const delMes = lista.filter((t) => (t.fecha || "").startsWith(prefix));
+      const totalMes = delMes.reduce((a, t) => a + (Number(t.monto) || 0), 0);
+      const mesNombre = new Date(y, m, 1).toLocaleDateString("es-AR", { month: "long", year: "numeric" });
+
+      let cells = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map((d) => `<div class="cal-dow">${d}</div>`).join("");
+      for (let i = 0; i < off; i++) cells += `<div class="cal-day blank"></div>`;
+      for (let d = 1; d <= dim; d++) {
+        const iso = isoDay(y, m, d);
+        const jobs = byDay[iso] || [];
+        const dots = jobs.slice(0, 6).map((j, k) => {
+          const c = j.cobrado ? "paid" : j.facturaEnviada ? "sent" : "unsent";
+          return `<span class="dot ${c}" style="--i:${k}"></span>`;
+        }).join("") + (jobs.length > 6 ? `<span class="more">+${jobs.length - 6}</span>` : "");
+        cells += `<button class="cal-day enter ${jobs.length ? "has" : ""} ${iso === hoyIso ? "today" : ""} ${iso === state.selDay ? "sel" : ""}" style="--i:${Math.min(Math.floor((off + d) / 7) * 2, 10)}" data-day="${iso}" aria-label="${fechaLarga(iso)}"><span class="n">${d}</span><span class="dots">${dots}</span></button>`;
+      }
+
+      const sel = state.selDay;
+      const panelJobs = sel ? (byDay[sel] || []) : delMes;
+      const panelTitle = sel ? fechaLarga(sel) : `Trabajos de ${new Date(y, m, 1).toLocaleDateString("es-AR", { month: "long" })}`;
+      const panelBody = panelJobs.length
+        ? `<div class="list">${panelJobs.map((j, i) => jobCard(j, i, "pop")).join("")}</div>`
+        : `<div class="empty"><h3>${sel ? "Sin trabajos este día" : "Sin trabajos este mes"}</h3><p>Tocá "Agregar" para cargar uno.</p></div>`;
+      const slide = state.calDir > 0 ? "slide-next" : state.calDir < 0 ? "slide-prev" : "";
+
+      return `
+        <div class="cal">
+          <div class="cal-head">
+            <div class="cal-title">
+              <h2>${mesNombre}</h2>
+              <p>${delMes.length} ${delMes.length === 1 ? "trabajo" : "trabajos"} · ${money(totalMes)}</p>
+            </div>
+            <div class="cal-nav">
+              <button data-action="cal-prev" aria-label="Mes anterior"><i data-lucide="chevron-left"></i></button>
+              <button data-action="cal-hoy">Hoy</button>
+              <button data-action="cal-next" aria-label="Mes siguiente"><i data-lucide="chevron-right"></i></button>
+            </div>
+          </div>
+          <div class="cal-grid ${slide}">${cells}</div>
+          <div class="legend">
+            <span><i class="dot paid"></i> Cobrado</span>
+            <span><i class="dot sent"></i> Enviado</span>
+            <span><i class="dot unsent"></i> Sin enviar</span>
+          </div>
+        </div>
+        <div class="day-panel">
+          <div class="day-head">
+            <h3>${panelTitle}</h3>
+            <button class="add-btn" data-action="nuevo-dia" data-day="${sel || (delMes.length ? "" : isoDay(y, m, 1))}"><i data-lucide="plus"></i> Agregar</button>
+          </div>
+          ${panelBody}
+        </div>
+      `;
+    }
+
+    function renderApp() {
+      const lista = misTrabajos();
+      const r = resumen(lista);
+      const total = r.totalCobrado + r.totalPorCobrar;
+      const pct = total > 0 ? Math.round((r.totalCobrado / total) * 100) : 0;
+      let idx = 0;
+      const st = () => `style="--i:${idx++}"`;
 
       return `
         <div class="header">
@@ -514,32 +1132,42 @@
               <p>Registro de trabajos y facturación</p>
             </div>
             <div class="sync-info"><span class="sync-dot"></span> En vivo</div>
-            <button class="logout-btn" data-action="logout" title="Cerrar sesión"><i data-lucide="log-out"></i></button>
+            <button class="logout-btn" data-action="logout" title="Cerrar sesión" aria-label="Cerrar sesión"><i data-lucide="log-out"></i></button>
           </div>
         </div>
         <div class="content">
           ${state.loading ? `
             <div class="loading-wrap"><i data-lucide="loader-2" class="spin"></i> Cargando trabajos...</div>
           ` : `
-            <div class="tabs">${tabsHtml}</div>
-            <div class="stats">
-              <div class="stat ok"><span class="num">${money(r.totalCobrado)}</span><span class="lbl">Cobrado</span></div>
-              <div class="stat pend"><span class="num">${money(r.totalPorCobrar)}</span><span class="lbl">Por cobrar</span></div>
-              <div class="stat"><span class="num">${r.cantidad}</span><span class="lbl">Trabajos</span></div>
-              <div class="stat ${r.sinFacturador > 0 ? "warn" : ""}"><span class="num">${r.sinFacturador}</span><span class="lbl">Sin definir facturador</span></div>
-              <div class="stat ${r.sinEnviar > 0 ? "warn" : ""}"><span class="num">${r.sinEnviar}</span><span class="lbl">Facturas sin enviar</span></div>
+            <div class="hero">
+              <button class="money-card ok enter" ${st()} data-goto="cobrados">
+                <div class="lbl"><i data-lucide="badge-dollar-sign"></i> Cobrado</div>
+                <div class="big" data-count="${r.totalCobrado}" data-key="cobrado">${money(r.totalCobrado)}</div>
+              </button>
+              <button class="money-card pend enter" ${st()} data-goto="porcobrar">
+                <div class="lbl"><i data-lucide="hourglass"></i> Por cobrar</div>
+                <div class="big" data-count="${r.totalPorCobrar}" data-key="porcobrar">${money(r.totalPorCobrar)}</div>
+              </button>
             </div>
-            <div class="toolbar">
-              <div class="search">
-                <i data-lucide="search"></i>
-                <input id="search-input" placeholder="Buscar por lugar o facturador..." value="${state.query}" />
-              </div>
-              <button class="add-btn" data-action="nuevo"><i data-lucide="plus"></i> Agregar</button>
+            <div class="progress enter" ${st()}>
+              <div class="progress-top"><span>Progreso de cobro</span><span>${pct}%</span></div>
+              <div class="progress-track"><div class="progress-fill" style="--p:${pct}%"></div></div>
             </div>
-            ${state.saveError ? `<div class="save-error">${state.saveError}</div>` : ""}
-            ${listHtml}
+            <div class="chips enter" ${st()}>
+              <span class="chip"><i data-lucide="briefcase" style="width:13px;height:13px"></i> Trabajos <b>${r.cantidad}</b></span>
+              <span class="chip ${r.sinFacturador > 0 ? "warn" : ""}">Sin facturador <b>${r.sinFacturador}</b></span>
+              <span class="chip ${r.sinEnviar > 0 ? "warn" : ""}" ${r.sinEnviar > 0 ? `data-goto="sinenviar"` : ""}>Sin enviar <b>${r.sinEnviar}</b></span>
+            </div>
+            <div class="seg enter" ${st()} data-view="${state.view}">
+              <span class="thumb ${state.viewChanged ? "slide" : ""}" style="--from:${state.view === "cal" ? "0%" : "100%"}"></span>
+              <button class="${state.view === "list" ? "active" : ""}" data-view="list"><i data-lucide="layout-list"></i> Lista</button>
+              <button class="${state.view === "cal" ? "active" : ""}" data-view="cal"><i data-lucide="calendar-days"></i> Calendario</button>
+            </div>
+            ${state.saveError ? `<div class="save-error">${esc(state.saveError)}</div>` : ""}
+            ${state.view === "cal" ? renderCalendarView(lista) : renderListView(lista)}
           `}
         </div>
+        ${state.loading ? "" : `<button class="fab" data-action="nuevo" aria-label="Agregar trabajo" title="Agregar trabajo"><i data-lucide="plus"></i></button>`}
         ${state.showForm ? renderModal() : ""}
       `;
     }
@@ -548,36 +1176,30 @@
       const f = state.form;
       return `
         <div class="overlay" id="overlay">
-          <div class="modal" id="modal-box">
+          <div class="modal" id="modal-box" role="dialog" aria-modal="true">
             <div class="modal-head">
               <h2>${state.editingId ? "Editar trabajo" : "Nuevo trabajo"}</h2>
-              <button data-action="cerrar-form"><i data-lucide="x"></i></button>
+              <button data-action="cerrar-form" aria-label="Cerrar"><i data-lucide="x"></i></button>
             </div>
             <form id="job-form">
               <div class="field">
-                <label>Trabajo de</label>
-                <div class="persona-select">
-                  ${PERSONAS.map(p => `<button type="button" class="${f.persona === p.id ? "sel" : ""}" data-persona="${p.id}">${p.label}</button>`).join("")}
-                </div>
+                <label for="f-fecha">Fecha</label>
+                <input type="date" id="f-fecha" required value="${esc(f.fecha)}" />
               </div>
               <div class="field">
-                <label>Fecha</label>
-                <input type="date" id="f-fecha" required value="${f.fecha}" />
+                <label for="f-lugar">Lugar</label>
+                <input type="text" id="f-lugar" required placeholder="Ej: Club Niceto" value="${esc(f.lugar)}" />
               </div>
               <div class="field">
-                <label>Lugar</label>
-                <input type="text" id="f-lugar" required placeholder="Ej: Club Niceto" value="${f.lugar.replace(/"/g, "&quot;")}" />
-              </div>
-              <div class="field">
-                <label>Quién lo factura</label>
-                <input type="text" id="f-facturador" placeholder="Nombre de quién hace la factura" value="${f.facturador.replace(/"/g, "&quot;")}" />
+                <label for="f-facturador">Quién lo factura</label>
+                <input type="text" id="f-facturador" placeholder="Nombre de quién hace la factura" value="${esc(f.facturador)}" />
                 <div class="hint">Si lo dejás vacío, va a quedar marcado como pendiente.</div>
               </div>
               <div class="field">
-                <label>Cuánto cobró</label>
+                <label for="f-monto">Cuánto cobró</label>
                 <div class="amount-prefix">
                   <span>$</span>
-                  <input type="number" id="f-monto" min="0" step="1000" placeholder="0" value="${f.monto}" />
+                  <input type="number" id="f-monto" min="0" step="1000" placeholder="0" value="${esc(f.monto)}" />
                 </div>
               </div>
               <div class="field">
@@ -587,82 +1209,103 @@
                   <button type="button" class="${!f.facturaEnviada ? "sel no" : ""}" data-bool="false">Todavía no</button>
                 </div>
               </div>
-              <button type="submit" class="submit-btn" style="width:100%;justify-content:center;">
-                ${state.editingId ? "Guardar cambios" : "Agregar trabajo"}
-              </button>
+              <button type="submit" class="submit-btn">${state.editingId ? "Guardar cambios" : "Agregar trabajo"}</button>
             </form>
           </div>
         </div>
       `;
     }
 
+    function cambiarMes(delta) {
+      let { y, m } = state.cal;
+      m += delta;
+      if (m < 0) { m = 11; y--; } else if (m > 11) { m = 0; y++; }
+      state.cal = { y, m };
+      state.calDir = delta;
+      state.selDay = null;
+      state.animate = false;
+      render();
+    }
+
     function attachListeners() {
       const appEl = document.getElementById("app");
+      const centro = (el) => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
+      const on = (sel, fn) => appEl.querySelectorAll(sel).forEach((b) => b.addEventListener("click", () => fn(b)));
 
       const loginForm = document.getElementById("login-form");
       if (loginForm) {
         loginForm.addEventListener("submit", (e) => {
           e.preventDefault();
-          const email = document.getElementById("login-email").value.trim();
-          const password = document.getElementById("login-password").value;
-          handleLogin(email, password);
+          handleLogin(document.getElementById("login-email").value.trim(), document.getElementById("login-password").value);
         });
       }
-
-      appEl.querySelectorAll("[data-tab]").forEach(btn => {
-        btn.addEventListener("click", () => { state.tab = btn.dataset.tab; render(); });
-      });
 
       const searchInput = document.getElementById("search-input");
       if (searchInput) {
         searchInput.addEventListener("input", (e) => {
           state.query = e.target.value;
+          state.animate = false;
           render();
-          document.getElementById("search-input")?.focus();
-          const val = document.getElementById("search-input");
-          if (val) val.selectionStart = val.selectionEnd = val.value.length;
+          const el = document.getElementById("search-input");
+          if (el) { el.focus(); el.selectionStart = el.selectionEnd = el.value.length; }
         });
       }
 
-      appEl.querySelectorAll('[data-action="nuevo"]').forEach(btn => {
-        btn.addEventListener("click", () => abrirNuevo(state.tab));
+      on(".seg button[data-view]", (b) => {
+        if (b.dataset.view === state.view) return;
+        state.view = b.dataset.view; state.viewChanged = true; state.animate = true; state.selDay = null;
+        render();
       });
-      appEl.querySelectorAll('[data-action="editar"]').forEach(btn => {
-        btn.addEventListener("click", () => {
-          const job = state.trabajos.find(t => t.id === btn.dataset.id);
-          if (job) abrirEdicion(job);
-        });
+      on("[data-filter]", (b) => { state.filter = b.dataset.filter; state.animate = true; render(); });
+      on("[data-goto]", (b) => {
+        state.filter = b.dataset.goto; state.view = "list"; state.viewChanged = true; state.animate = true;
+        const [x, y] = centro(b); fxMini(x, y, b.dataset.goto === "cobrados" ? "#4fd699" : "#7fc7ff", 14);
+        render();
       });
-      appEl.querySelectorAll('[data-action="pedir-borrar"]').forEach(btn => {
-        btn.addEventListener("click", () => { state.confirmDeleteId = btn.dataset.id; render(); });
-      });
-      appEl.querySelectorAll('[data-action="cancelar-borrar"]').forEach(btn => {
-        btn.addEventListener("click", () => { state.confirmDeleteId = null; render(); });
-      });
-      appEl.querySelectorAll('[data-action="confirm-borrar"]').forEach(btn => {
-        btn.addEventListener("click", () => borrarTrabajo(btn.dataset.id));
-      });
-      appEl.querySelectorAll('[data-action="marcar-cobrado"]').forEach(btn => {
-        btn.addEventListener("click", () => marcarCobrado(btn.dataset.id, true));
-      });
-      appEl.querySelectorAll('[data-action="marcar-por-cobrar"]').forEach(btn => {
-        btn.addEventListener("click", () => marcarCobrado(btn.dataset.id, false));
-      });
-      const logoutBtn = appEl.querySelector('[data-action="logout"]');
-      if (logoutBtn) logoutBtn.addEventListener("click", handleLogout);
 
-      const cerrarFormBtn = appEl.querySelector('[data-action="cerrar-form"]');
-      if (cerrarFormBtn) cerrarFormBtn.addEventListener("click", cerrarForm);
+      on("[data-day]:not([data-action])", (b) => {
+        const iso = b.dataset.day;
+        state.selDay = state.selDay === iso ? null : iso;
+        state.animate = false;
+        const [x, y] = centro(b); fxMini(x, y, "#7fc7ff", 12);
+        render();
+      });
+      on('[data-action="cal-prev"]', () => cambiarMes(-1));
+      on('[data-action="cal-next"]', () => cambiarMes(1));
+      on('[data-action="cal-hoy"]', () => {
+        const delta = (hoy.getFullYear() - state.cal.y) * 12 + (hoy.getMonth() - state.cal.m);
+        state.cal = { y: hoy.getFullYear(), m: hoy.getMonth() };
+        state.calDir = delta === 0 ? 0 : (delta > 0 ? 1 : -1);
+        state.selDay = hoyIso; state.animate = false; render();
+      });
+
+      on('[data-action="nuevo"]', () => abrirNuevo());
+      on('[data-action="nuevo-dia"]', (b) => abrirNuevo(b.dataset.day || undefined));
+      on('[data-action="editar"]', (b) => { const job = state.trabajos.find((t) => t.id === b.dataset.id); if (job) abrirEdicion(job); });
+      on('[data-action="pedir-borrar"]', (b) => { state.confirmDeleteId = b.dataset.id; state.animate = false; render(); });
+      on('[data-action="cancelar-borrar"]', () => { state.confirmDeleteId = null; state.animate = false; render(); });
+      on('[data-action="confirm-borrar"]', (b) => borrarTrabajo(b.dataset.id));
+      on('[data-action="marcar-cobrado"]', (b) => {
+        const job = state.trabajos.find((t) => t.id === b.dataset.id);
+        const [x, y] = centro(b);
+        state.paidId = b.dataset.id;
+        setTimeout(() => { state.paidId = null; }, 2600);
+        fxCobrado(x, y, job ? job.monto : 0);
+        marcarCobrado(b.dataset.id, true);
+      });
+      on('[data-action="marcar-por-cobrar"]', (b) => marcarCobrado(b.dataset.id, false));
+      on('[data-action="logout"]', () => handleLogout());
+      on('[data-action="cerrar-form"]', () => cerrarForm());
+
       const overlay = document.getElementById("overlay");
       if (overlay) overlay.addEventListener("click", (e) => { if (e.target === overlay) cerrarForm(); });
-      const modalBox = document.getElementById("modal-box");
-      if (modalBox) modalBox.addEventListener("click", (e) => e.stopPropagation());
 
-      appEl.querySelectorAll("[data-persona]").forEach(btn => {
-        btn.addEventListener("click", () => { state.form.persona = btn.dataset.persona; render(); });
-      });
-      appEl.querySelectorAll("[data-bool]").forEach(btn => {
-        btn.addEventListener("click", () => { state.form.facturaEnviada = btn.dataset.bool === "true"; render(); });
+      on("[data-bool]", (b) => {
+        state.form.facturaEnviada = b.dataset.bool === "true";
+        const box = b.parentElement, v = state.form.facturaEnviada;
+        box.querySelector('[data-bool="true"]').className = v ? "sel" : "";
+        box.querySelector('[data-bool="false"]').className = !v ? "sel no" : "";
+        if (v) { const [x, y] = centro(b); fxMini(x, y, "#4fd699", 18); }
       });
 
       const jobForm = document.getElementById("job-form");
@@ -679,6 +1322,7 @@
 
     function render() {
       const appEl = document.getElementById("app");
+      appEl.className = state.animate ? "anim" : "";
       if (!state.authReady) {
         appEl.innerHTML = `<div class="loading-wrap"><i data-lucide="loader-2" class="spin"></i> Cargando...</div>`;
       } else if (!state.user) {
@@ -687,6 +1331,10 @@
         appEl.innerHTML = renderApp();
       }
       attachListeners();
+      animateNumbers();
+      state.animate = false;
+      state.viewChanged = false;
+      state.calDir = 0;
     }
 
     render();
