@@ -147,9 +147,6 @@ class GastoWidget : AppWidgetProvider() {
                 v.setOnClickPendingIntent(vid, anotar(ctx, CATS[i], 7300 + i))
             }
             v.setOnClickPendingIntent(R.id.btn_anotar, anotar(ctx, "", 7399))
-
-            val h = Hist.lista(ctx)
-            v.setTextViewText(R.id.hist_0, h.getOrNull(0)?.let { "Último: $it" } ?: "Todavía no cargaste gastos desde el celular")
             return v
         }
     }

@@ -46,7 +46,6 @@ class PanelActivity : Activity() {
     private lateinit var monto: EditText
     private lateinit var nota: EditText
     private lateinit var btnFecha: Button
-    private lateinit var hist: TextView
     private lateinit var hoy: TextView
 
     private val refresco = object : Runnable {
@@ -72,8 +71,7 @@ class PanelActivity : Activity() {
         ahorro = findViewById(R.id.p_ahorro); hora = findViewById(R.id.p_hora); hoy = findViewById(R.id.p_hoy)
         dolarChips = findViewById(R.id.p_dolar_chips); catChips = findViewById(R.id.p_cat_chips)
         monto = findViewById(R.id.p_monto); nota = findViewById(R.id.p_nota)
-        btnFecha = findViewById(R.id.p_fecha); hist = findViewById(R.id.p_hist)
-
+        btnFecha = findViewById(R.id.p_fecha)
         findViewById<TextView>(R.id.p_ajustes).setOnClickListener { startActivity(Intent(this, MainActivity::class.java)) }
         btnFecha.setOnClickListener { elegirFecha() }
         findViewById<Button>(R.id.p_enviar).setOnClickListener { enviar() }
@@ -81,7 +79,6 @@ class PanelActivity : Activity() {
 
         pintarCategorias()
         pintarDolar()
-        pintarHist()
     }
 
     override fun onResume() {
@@ -89,7 +86,6 @@ class PanelActivity : Activity() {
         if (Session.hasSession(this)) {
             Programar.dolar(this)
             h.post(refresco)
-            pintarHist()
         }
     }
 
@@ -161,11 +157,6 @@ class PanelActivity : Activity() {
         }
     }
 
-    private fun pintarHist() {
-        val l = Hist.lista(this)
-        hist.text = if (l.isEmpty()) "Todavía no cargaste gastos desde este celular" else "Últimos gastos\n" + l.joinToString("\n")
-    }
-
     private fun chip(texto: String, sel: Boolean, onClick: () -> Unit): TextView = TextView(this).apply {
         text = texto
         setTextColor(DolarData.BLANCO)
@@ -196,6 +187,6 @@ class PanelActivity : Activity() {
         monto.setText(""); nota.setText(""); categoria = ""; fecha = null
         btnFecha.text = "Fecha: hoy"
         pintarCategorias()
-        h.postDelayed({ pintarHist(); pintarDolar() }, 4000)
+        h.postDelayed({ pintarDolar() }, 4000)
     }
 }

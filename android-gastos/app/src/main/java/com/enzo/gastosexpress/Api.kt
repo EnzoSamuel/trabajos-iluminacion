@@ -133,6 +133,31 @@ object Api {
         return JSONObject(text)
     }
 
+    /** Gastos de la colección "gastos" con fecha desde [desdeMs]: pares (fechaMs, monto). Refleja lo que hay en la web. */
+    fun gastosDesde(ctx: Context, desdeMs: Long): List<Pair<Long, Double>> {
+        val url = "https://firestore.googleapis.com/v1/projects/${Config.PROJECT_ID}/databases/(default)/documents:runQuery"
+        val q = JSONObject().put("structuredQuery", JSONObject()
+            .put("from", org.json.JSONArray().put(JSONObject().put("collectionId", "gastos")))
+            .put("where", JSONObject().put("fieldFilter", JSONObject()
+                .put("field", JSONObject().put("fieldPath", "fecha"))
+                .put("op", "GREATER_THAN_OR_EQUAL")
+                .put("value", JSONObject().put("timestampValue", Instant.ofEpochMilli(desdeMs).toString()))))).toString()
+        var (code, text) = post(url, q, "application/json", token(ctx))
+        if (code == 401) { val r = post(url, q, "application/json", refreshToken(ctx)); code = r.first; text = r.second }
+        if (code !in 200..299) throw ApiError(code, "No se pudieron leer los gastos (HTTP $code)")
+        val arr = org.json.JSONArray(text)
+        val out = ArrayList<Pair<Long, Double>>()
+        for (i in 0 until arr.length()) {
+            val f = arr.getJSONObject(i).optJSONObject("document")?.optJSONObject("fields") ?: continue
+            val m = f.optJSONObject("monto")
+            val monto = m?.optString("doubleValue")?.toDoubleOrNull() ?: m?.optString("integerValue")?.toDoubleOrNull() ?: continue
+            val ts = f.optJSONObject("fecha")?.optString("timestampValue").orEmpty()
+            val ms = try { Instant.parse(ts).toEpochMilli() } catch (e: Exception) { continue }
+            out.add(ms to monto)
+        }
+        return out
+    }
+
     /** Crea un documento en la colección "gastos". No toca ninguna otra colección. Devuelve el código HTTP. */
     fun postGasto(ctx: Context, categoria: String, monto: Long, descripcion: String, fechaMs: Long): Int {
         val now = System.currentTimeMillis()

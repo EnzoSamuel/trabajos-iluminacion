@@ -83,6 +83,7 @@ object DolarData {
                 p(c).edit().putString("usd", u.toString()).apply()
             }
         } catch (ex: Exception) { /* sin sesión o sin permiso */ }
+        try { if (Session.hasSession(c)) Hoy.sincronizar(c) } catch (ex: Exception) { /* se mantiene lo último guardado */ }
     }
 
     // ---------- Textos con flecha verde/roja ----------

@@ -46,7 +46,7 @@ object Hoy {
     fun mes(c: Context): Long =
         if (p(c).getString("mesKey", "") == LocalDate.now().toString().take(7)) p(c).getLong("mesTotal", 0L) else 0L
 
-    /** Suma al total de hoy / del mes solo si la fecha del gasto cae en hoy / en este mes. */
+    /** Suma al total de hoy / del mes solo si la fecha del gasto cae en hoy / en este mes (vista rápida hasta sincronizar). */
     fun sumar(c: Context, monto: Long, fechaMs: Long) {
         val hoy = LocalDate.now().toString()
         val dia = Instant.ofEpochMilli(fechaMs).atZone(ZoneId.systemDefault()).toLocalDate().toString()
@@ -55,24 +55,21 @@ object Hoy {
         if (dia.take(7) == hoy.take(7)) e.putString("mesKey", hoy.take(7)).putLong("mesTotal", mes(c) + monto)
         e.apply()
     }
-}
 
-/** Últimos gastos enviados desde el widget. */
-object Hist {
-    private fun p(c: Context) = c.getSharedPreferences("hist", Context.MODE_PRIVATE)
-    private val hora = DateTimeFormatter.ofPattern("HH:mm")
-    private val dia = DateTimeFormatter.ofPattern("dd/MM")
-
-    fun add(c: Context, cat: String, monto: Long, fechaMs: Long) {
-        val f = Instant.ofEpochMilli(fechaMs).atZone(ZoneId.systemDefault())
-        val cuando = if (f.toLocalDate() == LocalDate.now()) f.format(hora) else f.format(dia)
-        val linea = "$cat · ${pesos(monto)} · $cuando"
-        val todas = (listOf(linea) + lista(c)).take(5)
-        p(c).edit().putString("items", todas.joinToString("\n")).apply()
+    /** Bloqueante: recalcula Hoy y Mes con lo que realmente hay en la web (lo borrado allá deja de contarse). */
+    fun sincronizar(c: Context) {
+        val zona = ZoneId.systemDefault()
+        val hoy = LocalDate.now()
+        val desde = hoy.withDayOfMonth(1).atStartOfDay(zona).toInstant().toEpochMilli()
+        val gastos = Api.gastosDesde(c, desde)
+        var dia = 0.0; var mes = 0.0
+        for ((ms, monto) in gastos) {
+            mes += monto
+            if (Instant.ofEpochMilli(ms).atZone(zona).toLocalDate() == hoy) dia += monto
+        }
+        p(c).edit().putString("fecha", hoy.toString()).putLong("total", dia.toLong())
+            .putString("mesKey", hoy.toString().take(7)).putLong("mesTotal", mes.toLong()).apply()
     }
-
-    fun lista(c: Context): List<String> =
-        (p(c).getString("items", "") ?: "").split("\n").filter { it.isNotBlank() }
 }
 
 /** "2026-10-25" -> "25/10/2026" */
@@ -147,7 +144,7 @@ class GastoWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx,
             when {
                 code in 200..299 -> {
                     Hoy.sumar(ctx, monto, fechaMs)
-                    Hist.add(ctx, categoria, monto, fechaMs)
+                    try { Hoy.sincronizar(ctx) } catch (e: Exception) { /* queda la suma rápida */ }
                     GastoWidget.refresh(ctx)
                     Avisos.toast(ctx, "Gasto registrado con éxito")
                     Avisos.notificar(ctx, nid, "Gasto registrado con éxito", "$categoria · ${pesos(monto)}")
