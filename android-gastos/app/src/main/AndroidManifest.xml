@@ -12,8 +12,9 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="false">
 
+        <!-- Ícono de la app: panel a pantalla completa (si no hay sesión, pasa al inicio de sesión) -->
         <activity
-            android:name=".MainActivity"
+            android:name=".PanelActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -22,17 +23,15 @@
             </intent-filter>
         </activity>
 
+        <!-- Cuenta: inicio de sesión, widget y aviso de prueba -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- Formulario emergente que abre el widget -->
         <activity
             android:name=".GastoActivity"
-            android:excludeFromRecents="true"
-            android:exported="false"
-            android:taskAffinity=""
-            android:theme="@style/DialogTheme"
-            android:windowSoftInputMode="stateAlwaysVisible|adjustResize" />
-
-        <activity
-            android:name=".NotaActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:taskAffinity=""

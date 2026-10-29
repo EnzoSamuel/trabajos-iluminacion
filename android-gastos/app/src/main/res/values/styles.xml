@@ -27,18 +27,6 @@
         <item name="android:textSize">16sp</item>
     </style>
 
-    <style name="KeyBtn">
-        <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">match_parent</item>
-        <item name="android:layout_weight">1</item>
-        <item name="android:layout_margin">3dp</item>
-        <item name="android:background">@drawable/chip_bg</item>
-        <item name="android:gravity">center</item>
-        <item name="android:textColor">#EAF2F8</item>
-        <item name="android:textSize">24sp</item>
-        <item name="android:textStyle">bold</item>
-    </style>
-
     <style name="CatBtn">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">match_parent</item>

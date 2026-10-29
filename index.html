@@ -155,11 +155,13 @@
   /* ---------- SELECTOR DE VISTA ---------- */
   .seg { display: flex; position: relative; background: rgba(16,22,29,.9); border: 1px solid var(--border-soft); border-radius: 14px; padding: 4px; margin-bottom: 16px; }
   .seg .thumb {
-    position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 3); border-radius: 10px;
+    position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 5); border-radius: 10px;
     background: linear-gradient(160deg, #22303d, #1a2530); box-shadow: inset 0 0 0 1px var(--border), 0 0 20px -8px var(--accent);
   }
   .seg[data-view="cal"] .thumb { transform: translateX(100%); }
   .seg[data-view="gastos"] .thumb { transform: translateX(200%); }
+  .seg[data-view="dolares"] .thumb { transform: translateX(300%); }
+  .seg[data-view="resumen"] .thumb { transform: translateX(400%); }
   .seg .thumb.slide { animation: thumbSlide .5s var(--ease); }
   @keyframes thumbSlide { from { transform: translateX(var(--from)); } }
   .seg button {
@@ -379,6 +381,9 @@
   .gcards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
   @media (max-width: 560px) { .gcards { grid-template-columns: 1fr; } }
   .gcard { background: rgba(12,18,25,.6); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border: 1px solid var(--border-soft); border-radius: 16px; padding: 14px 16px; }
+  .gcard { position: relative; }
+  .gcard .edit { position: absolute; top: 8px; right: 8px; }
+  .ghint { font-size: 11.5px; color: var(--text-faint); margin-top: 6px; }
   .gcard .lbl { font-size: 11.5px; text-transform: uppercase; letter-spacing: .1em; color: var(--text-dim); }
   .gcard .big { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 22px; margin-top: 6px; white-space: nowrap; }
   .gcard.neg .big { color: var(--warn); }
@@ -398,6 +403,106 @@
   .gasto .gdate { margin-top: 3px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--text-faint); }
   .gasto .gmonto { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 16px; color: var(--warn); white-space: nowrap; }
   .gasto .gdel { align-self: flex-start; }
+
+  /* ---------- DÓLARES ---------- */
+  .glass { background: rgba(12,18,25,.6); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+  .dhero {
+    position: relative; overflow: hidden; border-radius: 20px; padding: 20px; margin-bottom: 12px;
+    background: linear-gradient(150deg, rgba(20,48,36,.72), rgba(12,18,25,.72)); border: 1px solid rgba(79,214,153,.32);
+    box-shadow: 0 0 50px -26px var(--ok); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  }
+  .dhero .edit { position: absolute; top: 12px; right: 12px; }
+  .dhero .lbl { font-size: 11.5px; text-transform: uppercase; letter-spacing: .12em; color: var(--text-dim); }
+  .dhero .usd { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: clamp(34px, 9vw, 54px); color: #9ff0c8; margin-top: 6px; letter-spacing: -.02em; line-height: 1.1; }
+  .dhero .ars { font-family: 'IBM Plex Mono', monospace; font-size: clamp(22px, 6vw, 30px); margin-top: 4px; }
+  .dhero .ars small { color: var(--text-faint); font-size: 11px; letter-spacing: .12em; margin-right: 8px; }
+  .dhero .sub { margin-top: 8px; font-size: 12.5px; color: var(--text-dim); line-height: 1.45; }
+  .dhero .sub b { color: var(--text); }
+  .live { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-faint); }
+  .delta { font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+  .delta.up { color: var(--ok); }
+  .delta.down { color: var(--warn); }
+  .gcard .big.delta { font-size: 20px; }
+  .chartcard { background: rgba(12,18,25,.6); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border: 1px solid var(--border-soft); border-radius: 18px; padding: 14px 14px 12px; margin-bottom: 16px; }
+  .chart-head { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .chart-head h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; margin: 0; }
+  .chart-wrap { position: relative; }
+  #dchart { width: 100%; height: auto; display: block; touch-action: pan-y; cursor: crosshair; }
+  .dline { fill: none; stroke: var(--ok); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 6px rgba(79,214,153,.7)); }
+  .dline.draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: drawLine 1.6s var(--ease) forwards; }
+  @keyframes drawLine { to { stroke-dashoffset: 0; } }
+  .darea.draw { animation: fadeIn 1.4s .5s backwards; }
+  .dgrid { stroke: rgba(255,255,255,.08); stroke-dasharray: 3 5; }
+  .dlbl { fill: #8497a7; font-size: 11px; font-family: 'IBM Plex Mono', monospace; }
+  .dlive { fill: var(--ok); }
+  .dlive-ring { fill: none; stroke: var(--ok); stroke-width: 1.5; transform-box: fill-box; transform-origin: center; animation: ringPulse 1.8s ease-out infinite; }
+  @keyframes ringPulse { from { transform: scale(1); opacity: .9; } to { transform: scale(4); opacity: 0; } }
+  .dcl { stroke: rgba(255,255,255,.35); stroke-width: 1; }
+  .dcc { fill: #fff; stroke: var(--ok); stroke-width: 2; }
+  .dtip { position: absolute; pointer-events: none; transform: translate(-50%, -135%); background: rgba(8,12,17,.94); border: 1px solid var(--border); padding: 6px 10px; border-radius: 9px; font-size: 12px; line-height: 1.35; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; opacity: 0; transition: opacity .15s; z-index: 3; }
+
+  /* ---------- AVISOS, SIMULADOR, MOVIMIENTOS ---------- */
+  .banner { display: flex; gap: 12px; align-items: flex-start; border-radius: 16px; padding: 14px 16px; margin-bottom: 12px; font-size: 14.5px; line-height: 1.45; border: 1px solid var(--border-soft); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+  .banner .bi { font-size: 26px; line-height: 1; }
+  .banner.up { background: rgba(79,214,153,.14); border-color: rgba(79,214,153,.5); box-shadow: 0 0 40px -18px var(--ok); }
+  .banner.up .bi { color: var(--ok); animation: bobUp 1.8s ease-in-out infinite; }
+  .banner.down { background: rgba(255,106,85,.12); border-color: rgba(255,106,85,.5); box-shadow: 0 0 40px -18px var(--warn); }
+  .banner.down .bi { color: var(--warn); animation: bobDown 1.8s ease-in-out infinite; }
+  .banner.flat { background: rgba(12,18,25,.6); color: var(--text-dim); font-size: 13.5px; }
+  @keyframes bobUp { 50% { transform: translateY(-4px); } }
+  @keyframes bobDown { 50% { transform: translateY(4px); } }
+  .aviso { position: fixed; top: 76px; left: 50%; transform: translateX(-50%); z-index: 250; width: min(92vw, 460px); padding: 14px 16px; border-radius: 14px; display: flex; flex-direction: column; gap: 4px; cursor: pointer; background: rgba(8,12,17,.96); border: 1px solid var(--border); box-shadow: 0 20px 50px -10px rgba(0,0,0,.8); animation: avisoIn .5s var(--ease); }
+  .aviso.up { border-color: var(--ok); box-shadow: 0 0 40px -10px var(--ok); }
+  .aviso.down { border-color: var(--warn); box-shadow: 0 0 40px -10px var(--warn); }
+  .aviso span { font-size: 13px; color: var(--text-dim); }
+  @keyframes avisoIn { from { opacity: 0; transform: translate(-50%, -20px); } }
+  .mov-row { display: grid; grid-template-columns: 78px 130px 1fr auto; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--border-soft); font-size: 13px; }
+  .mov-row .mf { font-family: 'IBM Plex Mono', monospace; color: var(--text-faint); font-size: 12px; }
+  .mov-row .mn { color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mov-row .mt { font-family: 'IBM Plex Mono', monospace; }
+  @media (max-width: 520px) { .mov-row { grid-template-columns: 70px 1fr auto; } .mov-row .mn { grid-column: 1 / -1; order: 5; } }
+  .sim-row { display: grid; grid-template-columns: 1.2fr 1fr 1.3fr 1fr; gap: 8px; align-items: center; padding: 9px 10px; border-radius: 10px; font-size: 13.5px; border: 1px solid transparent; }
+  .sim-row + .sim-row { margin-top: 4px; }
+  .sim-row.best { background: rgba(79,214,153,.1); border-color: rgba(79,214,153,.4); }
+  .sim-row em { font-style: normal; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #06281a; background: var(--ok); padding: 1px 6px; border-radius: 99px; margin-left: 4px; }
+  .sim-row .tasa { color: var(--text-dim); font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; }
+  .sim-row .pe { font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+  .sim-row .df { font-size: 12px; text-align: right; }
+  @media (max-width: 520px) { .sim-row { grid-template-columns: 1fr 1fr; } .sim-row .tasa { order: 3; } .sim-row .df { order: 4; text-align: left; } }
+
+  /* ---------- PLAZO DE COBRO (45–60 días) ---------- */
+  .plazo { font-size: 12.5px; padding: 4px 9px; border-radius: 7px; border: 1px solid var(--border); color: var(--text-dim); }
+  .plazo.venciendo { color: #ffcf6b; border-color: rgba(255,207,107,.5); background: rgba(255,207,107,.09); }
+  .plazo.atrasada { color: #fff; font-weight: 600; background: rgba(255,106,85,.9); border-color: transparent; animation: pulseRed 2s infinite; }
+  @keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(255,106,85,.55); } 70% { box-shadow: 0 0 0 8px rgba(255,106,85,0); } 100% { box-shadow: 0 0 0 0 rgba(255,106,85,0); } }
+  .job.atrasada { border-color: rgba(255,106,85,.75); background: linear-gradient(160deg, rgba(64,22,20,.7), rgba(14,18,25,.78)); box-shadow: 0 0 30px -12px var(--warn); }
+
+  /* ---------- TORTA DE GASTOS Y BARRAS DE COBROS ---------- */
+  .donut-wrap { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+  .donut { width: 170px; height: 170px; flex-shrink: 0; }
+  .arc { animation: arcIn 1.1s var(--ease) backwards; animation-delay: calc(var(--i) * 90ms); }
+  @keyframes arcIn { from { stroke-dasharray: 0 var(--C); } }
+  .dn-l { fill: #8497a7; font-size: 9px; letter-spacing: .14em; font-family: 'IBM Plex Mono', monospace; }
+  .dn-v { fill: #eaf2f8; font-size: 20px; font-weight: 600; font-family: 'IBM Plex Mono', monospace; }
+  .legend-col { flex: 1; min-width: 210px; }
+  .leg-row { display: grid; grid-template-columns: 12px 1fr auto auto; gap: 10px; align-items: center; padding: 6px 0; font-size: 13.5px; }
+  .leg-row i { width: 10px; height: 10px; border-radius: 3px; }
+  .leg-row .pc { color: var(--text-dim); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  .leg-row .mt { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; }
+  .bars { display: flex; align-items: stretch; gap: 6px; height: 240px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .bar-val { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--text-dim); text-align: center; height: 16px; white-space: nowrap; }
+  .bar-area { flex: 1; display: flex; align-items: flex-end; }
+  .bar-stack { width: 100%; display: flex; flex-direction: column; border-radius: 7px 7px 0 0; overflow: hidden; transform-origin: bottom; animation: growY .9s var(--ease) backwards; animation-delay: calc(var(--i) * 55ms); transition: filter .2s; }
+  .bar-col:hover .bar-stack { filter: brightness(1.3); }
+  .bar-stack i { display: block; min-height: 3px; flex-basis: 0; }
+  .bar-stack .cob, .legend-inline .cob { background: linear-gradient(180deg, #7ff0bd, var(--ok)); }
+  .bar-stack .pend, .legend-inline .pend { background: linear-gradient(180deg, #a6dbff, #4a96cf); }
+  .bar-lbl { text-align: center; font-size: 11px; color: var(--text-faint); text-transform: uppercase; height: 22px; padding-top: 6px; }
+  @keyframes growY { from { transform: scaleY(0); } }
+  .legend-inline { display: flex; gap: 14px; font-size: 12px; color: var(--text-dim); }
+  .legend-inline span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend-inline i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
 
   /* ---------- VIDEO DE FONDO ---------- */
   #vbg { position: fixed; inset: 0; z-index: -2; background: #05070b url(fondos/fondo-1.jpg) center / cover no-repeat; overflow: hidden; }
@@ -438,7 +543,11 @@
     .dot { width: 7px; height: 7px; }
     .cal-title h2 { font-size: 22px; }
     .cal-nav button { height: 34px; min-width: 34px; padding: 0 8px; }
-    .seg button { font-size: 16px; }
+  }
+  /* 5 pestañas: en pantallas chicas, ícono arriba y nombre abajo */
+  @media (max-width: 700px) {
+    .seg button { flex-direction: column; gap: 3px; font-size: 12px; padding: 8px 0 7px; letter-spacing: .01em; }
+    .seg button svg { width: 18px; height: 18px; }
   }
   @media (min-width: 700px) {
     .content { max-width: 880px; }
@@ -525,6 +634,28 @@
       gastos: [],
       gastosError: "",
       confirmDeleteGasto: null,
+      ajuste: 0,          // gastos que no se anotaron: se resta del saldo real
+      showSaldo: false,
+      saldoInput: "",
+      ahorro: { usd: 0 },       // ajustes/ahorro_usd: dólares ahorrados + cotización base
+      showAhorro: false,
+      ahorroInput: "",
+      ahorroModo: "sumar",      // sumar | retirar | corregir
+      ahorroFecha: "",
+      ahorroNota: "",
+      movs: [],                 // historial de movimientos de dólares (ajustes/mov_*)
+      alerta: { activa: true, casa: "blue", tipo: "compra", umbralPct: 1 },
+      simUsd: null,             // dólares del simulador de venta
+      chartFmt: "ars",
+      dolares: {},              // cotización actual por tipo de dólar: { blue: { compra, venta, leido }, ... }
+      histCasa: {},             // historial diario por tipo de dólar
+      casa: "blue",             // tipo de dólar que se muestra
+      dolarError: "",
+      tipoCot: "compra",        // a cuál cotización se valúa el ahorro
+      rango: 30,                // días del gráfico
+      chartModo: "cot",         // "cot" = cotización, "ahorro" = mi ahorro en $
+      chartPts: [],
+      drawAnim: true,
       filter: "todos",       // todos | porcobrar | sinenviar | cobrados
       cal: { y: hoy.getFullYear(), m: hoy.getMonth() },
       calDir: 0,
@@ -546,6 +677,8 @@
       const [y, m, d] = iso.split("-");
       return `${d}/${m}/${y}`;
     }
+    const usd = (n) => "US$ " + (Number(n) || 0).toLocaleString("es-AR", { maximumFractionDigits: 2 });
+    const fmtPct = (p) => (p >= 0 ? "+" : "−") + Math.abs(p).toFixed(1).replace(".", ",") + "%";
     function fechaLarga(iso) {
       const [y, m, d] = iso.split("-").map(Number);
       return new Date(y, m - 1, d).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
@@ -821,7 +954,8 @@
         const tick = (now) => {
           if (!el.isConnected) return;
           const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
-          el.textContent = money(from + (to - from) * e);
+          const val = from + (to - from) * e;
+          el.textContent = el.dataset.fmt === "usd" ? usd(val) : money(val);
           if (k < 1) requestAnimationFrame(tick);
         };
         requestAnimationFrame(tick);
@@ -833,6 +967,191 @@
        ===================================================================== */
     let unsubscribeTrabajos = null;
     let unsubscribeGastos = null;
+    let unsubscribeAjuste = null;
+    let unsubscribeAhorro = null;
+    let dolarTimer = null;
+    const CH_W = 700, CH_H = 250;
+
+    /* ---- Dólares (blue, oficial, MEP, CCL, cripto, mayorista, tarjeta): historial diario + cotización en vivo ---- */
+    const CASAS = [
+      ["blue", "Blue", "El de la calle: el billete físico que se compra y vende en cuevas. Es el que más se parece a tu dólar en mano."],
+      ["oficial", "Oficial", "El del banco. Es el precio regulado por el Gobierno."],
+      ["bolsa", "MEP", "Dólar Bolsa o MEP: se compra con pesos vía bonos o acciones, de forma legal y digital."],
+      ["contadoconliqui", "CCL", "Contado con liqui: sirve para sacar plata al exterior vía bonos. Suele ser el más caro."],
+      ["cripto", "Cripto", "Dólar en criptomonedas estables (como USDT), que se compra por apps."],
+      ["mayorista", "Mayorista", "El que usan los bancos y empresas entre sí. No es para personas."],
+      ["tarjeta", "Tarjeta", "Oficial más impuestos: lo que se paga en consumos en dólares con tarjeta."],
+    ];
+    const nombreCasa = (c) => (CASAS.find((x) => x[0] === c) || [c, c])[1];
+    function refrescarDolarVista() {
+      if (state.view === "dolares" && !state.showAhorro && !state.showForm && !state.showSaldo) { state.animate = false; render(); }
+    }
+    async function cargarDolarHist(casa = state.casa) {
+      if (state.histCasa[casa]) return;
+      try {
+        const r = await fetch("https://api.argentinadatos.com/v1/cotizaciones/dolares/" + casa);
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const all = await r.json();
+        state.histCasa[casa] = all.slice(-460).map((x) => ({ fecha: x.fecha, compra: x.compra, venta: x.venta }));
+        state.dolarError = "";
+      } catch (e) {
+        state.dolarError = "No se pudo cargar el historial del dólar (" + e.message + ").";
+      }
+      refrescarDolarVista();
+    }
+    async function cargarDolarVivo() {
+      try {
+        const r = await fetch("https://dolarapi.com/v1/dolares", { cache: "no-store" });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const lista = await r.json();
+        const ahora = Date.now();
+        lista.forEach((j) => { state.dolares[j.casa] = { compra: j.compra, venta: j.venta, fechaApi: j.fechaActualizacion, leido: ahora }; });
+        state.dolarError = "";
+        revisarAlerta();
+      } catch (e) {
+        state.dolarError = "Sin conexión con el servicio de cotización. Se muestra el último valor conocido.";
+      }
+      refrescarDolarVista();
+    }
+    function iniciarDolar() {
+      cargarDolarHist(); cargarDolarVivo();
+      clearInterval(dolarTimer);
+      dolarTimer = setInterval(() => { if (!document.hidden) cargarDolarVivo(); }, 60000);
+    }
+    function detenerDolar() { clearInterval(dolarTimer); dolarTimer = null; }
+
+    function serieDolar() {
+      const s = (state.histCasa[state.casa] || []).map((x) => ({ ...x }));
+      const cur = state.dolares[state.casa];
+      if (cur) {
+        const p = { fecha: hoyIso, compra: cur.compra, venta: cur.venta };
+        if (s.length && s[s.length - 1].fecha === hoyIso) s[s.length - 1] = p; else s.push(p);
+      }
+      return s;
+    }
+    function valorHace(serie, dias, tipo) {
+      const d = new Date(); d.setDate(d.getDate() - dias);
+      const lim = isoDay(d.getFullYear(), d.getMonth(), d.getDate());
+      for (let i = serie.length - 1; i >= 0; i--) if (serie[i].fecha <= lim) return serie[i][tipo];
+      return null;
+    }
+    // Toda la colección "ajustes" en un solo listener: ahorro_usd, saldo, alerta y los movimientos (mov_*).
+    function suscribirAhorro() {
+      if (unsubscribeAhorro) unsubscribeAhorro();
+      unsubscribeAhorro = onSnapshot(
+        collection(db, "ajustes"),
+        (snap) => {
+          let ah = { usd: 0 }, aj = 0, al = null;
+          const movs = [];
+          snap.forEach((d) => {
+            const x = d.data(), id = d.id;
+            if (id === "ahorro_usd") ah = x;
+            else if (id === "saldo") aj = Number(x.ajuste) || 0;
+            else if (id === "alerta") al = x;
+            else if (id.startsWith("mov_")) movs.push({ id, ...x });
+          });
+          movs.sort((a, b) => (a.fecha < b.fecha ? -1 : a.fecha > b.fecha ? 1 : (a.creadoEn || 0) - (b.creadoEn || 0)));
+          state.ahorro = ah; state.ajuste = aj; state.movs = movs;
+          if (al) state.alerta = { ...state.alerta, ...al };
+          const abierto = state.showAhorro || state.showSaldo || state.showForm;
+          if ((state.view === "dolares" || state.view === "gastos") && !abierto) { state.animate = false; render(); }
+        },
+        () => {}
+      );
+    }
+    function serieUsd() {
+      const pts = state.movs.map((m) => ({ fecha: m.fecha, v: Number(m.total) || 0 }));
+      const u = Number(state.ahorro.usd) || 0, last = pts[pts.length - 1];
+      if (pts.length && (!last || last.fecha < hoyIso)) pts.push({ fecha: hoyIso, v: u });
+      return pts;
+    }
+    /* ---- Alertas del dólar: aviso en la web (y en el navegador si lo permitís). El celular lo hace DolarWorker. ---- */
+    const lsGet = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+    const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch { /* sin almacenamiento */ } };
+    function mostrarAviso(titulo, texto, tipo) {
+      const el = document.createElement("div");
+      el.className = "aviso " + (tipo || "");
+      el.innerHTML = `<b>${esc(titulo)}</b><span>${esc(texto)}</span>`;
+      el.addEventListener("click", () => el.remove());
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 10000);
+    }
+    function revisarAlerta() {
+      const al = state.alerta;
+      if (!al.activa) return;
+      const cur = state.dolares[al.casa];
+      if (!cur) return;
+      const v = cur[al.tipo], key = `refDolar_${al.casa}_${al.tipo}`, ref = Number(lsGet(key));
+      if (!ref) { lsSet(key, String(v)); return; }
+      const pct = (v / ref - 1) * 100;
+      if (Math.abs(pct) < (Number(al.umbralPct) || 1)) return;
+      const u = Number(state.ahorro.usd) || 0, sube = pct > 0;
+      const titulo = `${sube ? "▲ Subió" : "▼ Bajó"} el dólar ${nombreCasa(al.casa)} ${fmtPct(pct)}`;
+      const texto = `${money(ref)} → ${money(v)}.` + (u ? ` Tus ${usd(u)} ${sube ? "valen" : "ahora valen"} ${money(Math.abs(u * (v - ref)))} ${sube ? "más" : "menos"}.` : "");
+      mostrarAviso(titulo, texto, sube ? "up" : "down");
+      if ("Notification" in window && Notification.permission === "granted") { try { new Notification(titulo, { body: texto }); } catch { /* no soportado */ } }
+      lsSet(key, String(v));
+    }
+    async function guardarAlerta(cambios) {
+      const n = { ...state.alerta, casa: state.casa, tipo: state.tipoCot, ...cambios };
+      state.alerta = n;
+      try {
+        await setDoc(doc(db, "ajustes", "alerta"), { activa: !!n.activa, casa: n.casa, tipo: n.tipo, umbralPct: Number(n.umbralPct) || 1, actualizadoEn: Date.now() });
+        state.saveError = "";
+      } catch (err) {
+        state.saveError = "No se pudo guardar la alerta: " + err.message;
+      }
+      lsSet(`refDolar_${n.casa}_${n.tipo}`, String((state.dolares[n.casa] || {})[n.tipo] || ""));
+      state.animate = false; render();
+    }
+    async function guardarMovimiento(f, reiniciar) {
+      const a = state.ahorro, actual = Number(a.usd) || 0, monto = Math.abs(Number(f.monto) || 0);
+      const nuevo = f.modo === "sumar" ? actual + monto : f.modo === "retirar" ? Math.max(0, actual - monto) : monto;
+      const delta = nuevo - actual;
+      const data = { usd: nuevo, actualizadoEn: Date.now(), bases: a.bases || {}, baseFecha: a.baseFecha || "" };
+      if ((reiniciar || !Object.keys(data.bases).length) && Object.keys(state.dolares).length) {
+        // Se guarda la cotización de hoy de todos los dólares, así la comparación sirve para cualquiera que elijas.
+        data.bases = {};
+        Object.entries(state.dolares).forEach(([c, v]) => { data.bases[c] = { compra: v.compra, venta: v.venta }; });
+        data.baseFecha = hoyIso;
+      }
+      try {
+        await setDoc(doc(db, "ajustes", "ahorro_usd"), data);
+        if (delta !== 0) {
+          await setDoc(doc(db, "ajustes", "mov_" + Date.now()), {
+            tipo: f.modo, usd: delta, total: nuevo, fecha: f.fecha || hoyIso, nota: (f.nota || "").trim(),
+            blueCompra: (state.dolares.blue || {}).compra || 0, creadoEn: Date.now(),
+          });
+        }
+        state.saveError = "";
+      } catch (err) {
+        state.saveError = err.code === "permission-denied"
+          ? 'Firestore no permite guardar el ahorro. Agregá la colección "ajustes" a las reglas (ver firestore.rules.example).'
+          : "No se pudo guardar el ahorro: " + err.message;
+      }
+      state.showAhorro = false; state.animate = false; render();
+    }
+
+    // Saldo real = cobrado − gastos anotados − ajuste manual (guardado en ajustes/saldo).
+    function saldoBruto() {
+      const gastado = state.gastos.reduce((a, x) => a + (Number(x.monto) || 0), 0);
+      return resumen(misTrabajos()).totalCobrado - gastado;
+    }
+    function suscribirAjuste() { /* el ajuste del saldo ahora llega por suscribirAhorro (colección "ajustes") */ }
+    async function guardarSaldo(real) {
+      try {
+        await setDoc(doc(db, "ajustes", "saldo"), { ajuste: saldoBruto() - real, saldoDeclarado: real, actualizadoEn: Date.now() });
+        state.saveError = "";
+        state.showSaldo = false;
+      } catch (err) {
+        state.saveError = err.code === "permission-denied"
+          ? 'Firestore no permite guardar el saldo. Agregá la colección "ajustes" a las reglas (ver firestore.rules.example).'
+          : "No se pudo guardar el saldo: " + err.message;
+        state.showSaldo = false;
+      }
+      state.animate = false;
+      render();
+    }
 
     function fechaDeGasto(g) {
       const f = g.fecha;
@@ -884,6 +1203,9 @@
         state.animate = true;
         render();
         suscribirGastos();
+        suscribirAjuste();
+        suscribirAhorro();
+        iniciarDolar();
         if (unsubscribeTrabajos) unsubscribeTrabajos();
         unsubscribeTrabajos = onSnapshot(
           trabajosCol,
@@ -906,8 +1228,13 @@
       } else {
         if (unsubscribeTrabajos) { unsubscribeTrabajos(); unsubscribeTrabajos = null; }
         if (unsubscribeGastos) { unsubscribeGastos(); unsubscribeGastos = null; }
+        if (unsubscribeAjuste) { unsubscribeAjuste(); unsubscribeAjuste = null; }
+        if (unsubscribeAhorro) { unsubscribeAhorro(); unsubscribeAhorro = null; }
+        detenerDolar();
+        state.ahorro = { usd: 0 };
         state.trabajos = [];
         state.gastos = [];
+        state.ajuste = 0;
         state.loading = false;
       }
       render();
@@ -1049,10 +1376,35 @@
       `;
     }
 
+    /* ---- Plazo de cobro: se cobra entre 45 y 60 días; pasado eso, la factura se resalta ---- */
+    const PLAZO_MIN = 45, PLAZO_MAX = 60;
+    function diasDesde(iso) {
+      if (!iso) return 0;
+      const [y, m, d] = iso.split("-").map(Number), h = new Date();
+      return Math.floor((new Date(h.getFullYear(), h.getMonth(), h.getDate()) - new Date(y, m - 1, d)) / 86400000);
+    }
+    function estadoCobro(job) {
+      if (job.cobrado) return null;
+      const d = diasDesde(job.fecha);
+      if (d > PLAZO_MAX) return { t: "atrasada", d };
+      if (d >= PLAZO_MIN) return { t: "venciendo", d, falta: PLAZO_MAX - d };
+      return { t: "ok", d };
+    }
+    const MESES_CORTOS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+    const corto = (n) => {
+      const a = Math.abs(n);
+      return a >= 1e6 ? (n / 1e6).toFixed(a >= 1e7 ? 0 : 1).replace(".", ",") + "M" : a >= 1e3 ? Math.round(n / 1e3) + "k" : String(Math.round(n));
+    };
+
     function jobCard(job, i, cls) {
       const faltaFacturador = !job.facturador || !job.facturador.trim();
       const enviada = !!job.facturaEnviada;
-      const extra = `${(faltaFacturador || !enviada) ? "has-warning" : ""} ${job.id === state.newId ? "fresh" : ""} ${job.id === state.paidId ? "paid-now" : ""}`;
+      const ec = estadoCobro(job);
+      const extra = `${(faltaFacturador || !enviada) ? "has-warning" : ""} ${ec && ec.t === "atrasada" ? "atrasada" : ""} ${job.id === state.newId ? "fresh" : ""} ${job.id === state.paidId ? "paid-now" : ""}`;
+      const plazo = !ec ? "" : `<div class="job-meta"><span class="plazo ${ec.t}">${
+        ec.t === "atrasada" ? `⚠ Atrasada: ${ec.d} días sin cobrar (pasó el plazo de ${PLAZO_MAX})`
+        : ec.t === "venciendo" ? `⏳ Ya está en el plazo de cobro: faltan ${ec.falta} ${ec.falta === 1 ? "día" : "días"} para los ${PLAZO_MAX}`
+        : `Hace ${ec.d} ${ec.d === 1 ? "día" : "días"} · se suele cobrar entre ${PLAZO_MIN} y ${PLAZO_MAX}`}</span></div>`;
       return `
         <div class="job ${cls} ${extra}" style="--i:${Math.min(i, 12)}">
           <div class="job-actions">
@@ -1080,6 +1432,7 @@
               : `<span class="tag">Factura: ${esc(job.facturador)}</span>`}
             <span class="tag job-monto">${money(job.monto)}</span>
           </div>
+          ${plazo}
           <div class="job-meta">
             ${job.cobrado
               ? `<span class="tag ok-tag" data-action="marcar-por-cobrar" data-id="${esc(job.id)}" title="Click para deshacer"><i data-lucide="check-circle-2"></i> Cobrado</span>`
@@ -1097,9 +1450,11 @@
         porcobrar: lista.filter((t) => !t.cobrado).length,
         sinenviar: lista.filter((t) => !t.facturaEnviada).length,
         cobrados: lista.filter((t) => t.cobrado).length,
+        atrasadas: lista.filter((t) => (estadoCobro(t) || {}).t === "atrasada").length,
       };
-      const FILTROS = [["todos", "Todos"], ["porcobrar", "Por cobrar"], ["sinenviar", "Sin enviar"], ["cobrados", "Cobrados"]];
+      const FILTROS = [["todos", "Todos"], ["porcobrar", "Por cobrar"], ["atrasadas", "Atrasadas"], ["sinenviar", "Sin enviar"], ["cobrados", "Cobrados"]];
       const filtrada = lista.filter((t) => {
+        if (f === "atrasadas" && (estadoCobro(t) || {}).t !== "atrasada") return false;
         if (f === "porcobrar" && t.cobrado) return false;
         if (f === "sinenviar" && t.facturaEnviada) return false;
         if (f === "cobrados" && !t.cobrado) return false;
@@ -1185,6 +1540,69 @@
       `;
     }
 
+    const COLORES_TORTA = ["#ff9a1f", "#7fc7ff", "#4fd699", "#b58bff", "#ff6a55", "#ffd24a", "#5eead4", "#f472b6"];
+    function donutGastos(cats, total) {
+      const R = 62, C = 2 * Math.PI * R, GAP = 3;
+      let acum = 0;
+      const arcos = cats.map(([k, v], i) => {
+        const frac = v / total, len = Math.max(0, frac * C - GAP);
+        const off = -acum * C; acum += frac;
+        return `<circle class="arc" cx="80" cy="80" r="${R}" fill="none" stroke="${COLORES_TORTA[i % COLORES_TORTA.length]}" stroke-width="20"
+          stroke-dasharray="${len.toFixed(2)} ${(C - len).toFixed(2)}" stroke-dashoffset="${off.toFixed(2)}" style="--C:${C.toFixed(2)};--i:${i}" transform="rotate(-90 80 80)"><title>${esc(k)}: ${money(v)}</title></circle>`;
+      }).join("");
+      const leyenda = cats.map(([k, v], i) => `
+        <div class="leg-row"><i style="background:${COLORES_TORTA[i % COLORES_TORTA.length]}"></i><span class="nm">${esc(k)}</span>
+          <span class="pc">${(v / total * 100).toFixed(0)}%</span><span class="mt">${money(v)}</span></div>`).join("");
+      return `<div class="donut-wrap">
+        <svg class="donut" viewBox="0 0 160 160" role="img" aria-label="Gastos por categoría">
+          <circle cx="80" cy="80" r="${R}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="20"/>${arcos}
+          <text x="80" y="76" text-anchor="middle" class="dn-l">TOTAL</text><text x="80" y="95" text-anchor="middle" class="dn-v">${corto(total)}</text>
+        </svg><div class="legend-col">${leyenda}</div></div>`;
+    }
+
+    function renderResumenView(lista) {
+      // Cobros por mes (según la fecha del trabajo): lo cobrado + lo que falta cobrar, últimos 12 meses.
+      const meses = [];
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
+        meses.push({ y: d.getFullYear(), m: d.getMonth(), k: `${d.getFullYear()}-${pad(d.getMonth() + 1)}`, cob: 0, pend: 0, n: 0 });
+      }
+      lista.forEach((t) => {
+        const mm = meses.find((x) => (t.fecha || "").startsWith(x.k));
+        if (!mm) return;
+        mm.n++;
+        if (t.cobrado) mm.cob += Number(t.monto) || 0; else mm.pend += Number(t.monto) || 0;
+      });
+      const max = Math.max(1, ...meses.map((x) => x.cob + x.pend));
+      const conDatos = meses.filter((x) => x.cob + x.pend > 0);
+      const totalCob = meses.reduce((a, x) => a + x.cob, 0), totalPend = meses.reduce((a, x) => a + x.pend, 0);
+      const mejor = conDatos.slice().sort((a, b) => (b.cob + b.pend) - (a.cob + a.pend))[0];
+      const prom = conDatos.length ? (totalCob + totalPend) / conDatos.length : 0;
+      const nomMes = (x) => new Date(x.y, x.m, 1).toLocaleDateString("es-AR", { month: "long", year: "numeric" });
+      const barras = meses.map((x, i) => {
+        const tot = x.cob + x.pend, h = tot ? Math.max(4, (tot / max) * 100) : 0;
+        return `<div class="bar-col" style="--i:${i}" title="${esc(nomMes(x))}: cobrado ${money(x.cob)} · por cobrar ${money(x.pend)}">
+          <div class="bar-val">${tot ? corto(tot) : ""}</div>
+          <div class="bar-area"><div class="bar-stack" style="height:${h}%">
+            ${x.pend ? `<i class="pend" style="flex-grow:${x.pend}"></i>` : ""}${x.cob ? `<i class="cob" style="flex-grow:${x.cob}"></i>` : ""}</div></div>
+          <div class="bar-lbl">${MESES_CORTOS[x.m]}</div></div>`;
+      }).join("");
+      const atras = lista.filter((t) => (estadoCobro(t) || {}).t === "atrasada");
+      const montoAtras = atras.reduce((a, t) => a + (Number(t.monto) || 0), 0);
+      return `
+        <div class="gcards">
+          <div class="gcard enter" style="--i:0"><div class="lbl">Mejor mes</div><div class="big" style="font-size:19px">${mejor ? esc(nomMes(mejor)) : "—"}</div><div class="ghint">${mejor ? money(mejor.cob + mejor.pend) + " en " + mejor.n + (mejor.n === 1 ? " trabajo" : " trabajos") : "Sin datos todavía"}</div></div>
+          <div class="gcard enter" style="--i:1"><div class="lbl">Promedio por mes</div><div class="big" data-count="${Math.round(prom)}" data-key="r-prom">${money(prom)}</div><div class="ghint">en los meses con trabajos</div></div>
+          <div class="gcard enter ${atras.length ? "neg" : ""}" style="--i:2"><div class="lbl">Atrasado de cobro</div><div class="big">${money(montoAtras)}</div><div class="ghint">${atras.length ? atras.length + (atras.length === 1 ? " factura pasó" : " facturas pasaron") + " los " + PLAZO_MAX + " días" : "Nada atrasado"}</div></div>
+        </div>
+        <div class="chartcard enter" style="--i:3">
+          <div class="chart-head"><h3>Cobros por mes</h3>
+            <div class="legend-inline"><span><i class="cob"></i> Cobrado</span><span><i class="pend"></i> Por cobrar</span></div></div>
+          <div class="bars">${barras}</div>
+          <div class="ghint" style="margin-top:8px">Los trabajos se ubican en el mes de su fecha. Pasá el mouse o tocá una barra para ver el detalle.</div>
+        </div>`;
+    }
+
     function renderGastosView() {
       if (state.gastosError) {
         return `<div class="empty"><h3>No se pueden leer los gastos</h3><p>${esc(state.gastosError)}</p></div>`;
@@ -1194,7 +1612,7 @@
       const mes = hoyIso.slice(0, 7);
       const delMes = g.filter((x) => { const d = fechaDeGasto(x); return isoDay(d.getFullYear(), d.getMonth(), d.getDate()).startsWith(mes); });
       const totalMes = delMes.reduce((a, x) => a + (Number(x.monto) || 0), 0);
-      const balance = resumen(misTrabajos()).totalCobrado - total;
+      const balance = resumen(misTrabajos()).totalCobrado - total - state.ajuste;
       const cap = (s) => { s = String(s || "Sin categoría").trim() || "Sin categoría"; return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase(); };
 
       const porCat = {};
@@ -1226,13 +1644,228 @@
         <div class="gcards">
           <div class="gcard enter" style="--i:0"><div class="lbl">Total gastado</div><div class="big" style="color:var(--warn)" data-count="${total}" data-key="g-total">${money(total)}</div></div>
           <div class="gcard enter" style="--i:1"><div class="lbl">Este mes</div><div class="big" data-count="${totalMes}" data-key="g-mes">${money(totalMes)}</div></div>
-          <div class="gcard enter ${balance >= 0 ? "pos" : "neg"}" style="--i:2"><div class="lbl">Cobrado − gastos</div><div class="big" data-count="${balance}" data-key="g-bal">${money(balance)}</div></div>
+          <div class="gcard enter ${balance >= 0 ? "pos" : "neg"}" style="--i:2"><button class="icon-btn edit" data-action="editar-saldo" title="Editar saldo" aria-label="Editar saldo"><i data-lucide="pencil"></i></button><div class="lbl">Saldo real · lo que te queda</div><div class="big" data-count="${balance}" data-key="g-bal">${money(balance)}</div>${state.ajuste ? `<div class="ghint">Incluye un ajuste manual de ${state.ajuste > 0 ? "−" : "+"} ${money(Math.abs(state.ajuste))}</div>` : ""}</div>
         </div>
-        ${cats.length ? `<div class="cats enter" style="--i:3"><h3>Por categoría</h3>
-          ${cats.map(([k, v]) => `<div class="cat-row"><span class="nm">${esc(k)}</span><span class="bar"><i style="--w:${Math.max(3, Math.round(v / max * 100))}%"></i></span><span class="mt">${money(v)}</span></div>`).join("")}</div>` : ""}
+        ${cats.length ? `<div class="cats enter" style="--i:3"><h3>En qué se va la plata</h3>${donutGastos(cats, total)}</div>` : ""}
         <div class="gasto-list-title">Egresos registrados · ${g.length}</div>
         ${lista}
       `;
+    }
+
+    function chartSvg(serie, dibujar, modo) {
+      const tipo = state.tipoCot;
+      let pts, vals;
+      if (modo === "usd") {
+        pts = serieUsd(); vals = pts.map((p) => p.v); state.chartFmt = "usd";
+      } else {
+        const mult = modo === "ahorro" ? (Number(state.ahorro.usd) || 0) : 1;
+        const d = new Date(); d.setDate(d.getDate() - state.rango);
+        const desde = isoDay(d.getFullYear(), d.getMonth(), d.getDate());
+        pts = serie.filter((p) => p.fecha >= desde);
+        if (pts.length < 2) pts = serie.slice(-2);
+        vals = pts.map((p) => p[tipo] * mult); state.chartFmt = "ars";
+      }
+      if (pts.length < 2) { state.chartPts = []; return `<div class="empty" style="padding:30px 10px"><p style="margin:0">Cargá al menos un movimiento de dólares para ver cómo crece tu ahorro.</p></div>`; }
+      const min = Math.min(...vals), max = Math.max(...vals);
+      const pad = (max - min) * 0.14 || max * 0.02, lo = min - pad, hi = max + pad;
+      const L = 8, R = 8, T = 14, B = 24;
+      const t0 = Date.parse(pts[0].fecha + "T12:00:00"), t1 = Date.parse(pts[pts.length - 1].fecha + "T12:00:00");
+      const X = (f) => L + ((Date.parse(f + "T12:00:00") - t0) / Math.max(1, t1 - t0)) * (CH_W - L - R);
+      const Y = (v) => T + (1 - (v - lo) / (hi - lo)) * (CH_H - T - B);
+      state.chartPts = pts.map((p, i) => ({ x: X(p.fecha), y: Y(vals[i]), fecha: p.fecha, v: vals[i] }));
+      const line = state.chartPts.map((p, i) => (i ? "L" : "M") + p.x.toFixed(1) + " " + p.y.toFixed(1)).join(" ");
+      const first = state.chartPts[0], last = state.chartPts[state.chartPts.length - 1];
+      const area = `${line} L${last.x.toFixed(1)} ${CH_H - B} L${first.x.toFixed(1)} ${CH_H - B} Z`;
+      const grid = [0, 1, 2, 3].map((i) => {
+        const v = lo + ((hi - lo) * (3 - i)) / 3, y = T + ((CH_H - T - B) * i) / 3;
+        return `<line class="dgrid" x1="${L}" x2="${CH_W - R}" y1="${y}" y2="${y}"/><text class="dlbl" x="${L + 2}" y="${y - 4}">${state.chartFmt === "usd" ? usd(v) : money(v)}</text>`;
+      }).join("");
+      const cd = (f) => { const [, m, dd] = f.split("-"); return `${dd}/${m}`; };
+      const mid = state.chartPts[Math.floor(state.chartPts.length / 2)];
+      const dr = dibujar ? "draw" : "";
+      return `
+        <svg id="dchart" viewBox="0 0 ${CH_W} ${CH_H}" role="img" aria-label="Gráfico del dólar blue">
+          <defs><linearGradient id="dgrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4fd699" stop-opacity=".42"/><stop offset="1" stop-color="#4fd699" stop-opacity="0"/></linearGradient></defs>
+          ${grid}
+          <path class="darea ${dr}" d="${area}" fill="url(#dgrad)"/>
+          <path class="dline ${dr}" pathLength="1" d="${line}"/>
+          <text class="dlbl" x="${L}" y="${CH_H - 6}">${cd(first.fecha)}</text>
+          <text class="dlbl" x="${mid.x}" y="${CH_H - 6}" text-anchor="middle">${cd(mid.fecha)}</text>
+          <text class="dlbl" x="${CH_W - R}" y="${CH_H - 6}" text-anchor="end">${cd(last.fecha)}</text>
+          <circle class="dlive-ring" cx="${last.x}" cy="${last.y}" r="5"/>
+          <circle class="dlive" cx="${last.x}" cy="${last.y}" r="4.5"/>
+          <line id="dcl" class="dcl" x1="0" x2="0" y1="${T}" y2="${CH_H - B}" opacity="0"/>
+          <circle id="dcc" class="dcc" r="5" cx="0" cy="0" opacity="0"/>
+        </svg>
+        <div id="dtip" class="dtip"></div>`;
+    }
+
+    function renderDolaresView() {
+      const tipo = state.tipoCot, serie = serieDolar();
+      const ult = serie[serie.length - 1];
+      const cur = state.dolares[state.casa] || null, nombre = nombreCasa(state.casa);
+      const ahora = cur ? cur[tipo] : (ult ? ult[tipo] : 0);
+      const a = state.ahorro, u = Number(a.usd) || 0, pesosAhorro = u * ahora;
+      const base = Number(a.bases && a.bases[state.casa] ? a.bases[state.casa][tipo] : 0) || 0;
+      const dArs = base ? u * (ahora - base) : 0, dPct = base ? (ahora / base - 1) * 100 : 0;
+      const signo = (n) => (n >= 0 ? "+" : "−") + " " + money(Math.abs(n));
+      const flecha = (n) => (n >= 0 ? "▲" : "▼");
+      const cls = (n) => (n >= 0 ? "up" : "down");
+      const dibujar = state.drawAnim; state.drawAnim = false;
+      const hora = cur ? new Date(cur.leido).toLocaleTimeString("es-AR") : "—";
+      let modo = state.chartModo;
+      if (modo === "ahorro" && !(u > 0)) modo = "cot";
+      if (modo === "usd" && !state.movs.length) modo = "cot";
+
+      // Cartel "subió / bajó el dólar" (hoy vs ayer)
+      const ayer = valorHace(serie, 1, tipo), pAyer = ayer && ahora ? (ahora / ayer - 1) * 100 : 0;
+      const dif = u * (ahora - (ayer || ahora));
+      const banner = !ayer || !ahora ? "" : Math.abs(pAyer) < 0.05
+        ? `<div class="banner flat enter" style="--i:0">El dólar ${nombre} no tuvo cambios hoy: sigue en ${money(ahora)}.</div>`
+        : `<div class="banner ${pAyer > 0 ? "up" : "down"} enter" style="--i:0"><span class="bi">${pAyer > 0 ? "▲" : "▼"}</span>
+            <div><b>${pAyer > 0 ? "Subió" : "Bajó"} el dólar ${nombre} ${fmtPct(pAyer)}</b> respecto de ayer (${money(ayer)} → ${money(ahora)}).
+            ${u ? `<br>Tus ${usd(u)} ${pAyer > 0 ? "valen" : "ahora valen"} <b>${money(Math.abs(dif))} ${pAyer > 0 ? "más" : "menos"}</b> que ayer.` : ""}</div></div>`;
+
+      // Simulador de venta: cuántos pesos te dan por tus dólares en cada tipo de dólar
+      const sim = state.simUsd != null ? state.simUsd : (u > 0 ? u : 100);
+      const al = state.alerta, nomAl = nombreCasa(al.casa);
+
+      const cambios = [["Hoy vs ayer", 1], ["Últimos 7 días", 7], ["Últimos 30 días", 30]].map(([lbl, dias], i) => {
+        const prev = valorHace(serie, dias, tipo);
+        if (!prev || !ahora) return `<div class="gcard enter" style="--i:${i}"><div class="lbl">${lbl}</div><div class="big">—</div></div>`;
+        const p = (ahora / prev - 1) * 100, ars = u * (ahora - prev);
+        return `<div class="gcard enter" style="--i:${i}"><div class="lbl">${lbl}</div>
+          <div class="big delta ${cls(p)}">${flecha(p)} ${fmtPct(p)}</div>
+          <div class="ghint">${u ? `Tu ahorro: ${signo(ars)}` : `Dólar: ${signo(ahora - prev)}`}</div></div>`;
+      }).join("");
+
+      return `
+        <div class="dhero enter" style="--i:0">
+          <button class="icon-btn edit" data-action="editar-ahorro" title="Editar ahorro" aria-label="Editar ahorro"><i data-lucide="pencil"></i></button>
+          <div class="lbl">Mi ahorro en dólares</div>
+          ${u > 0 ? `
+            <div class="usd" data-count="${u}" data-key="d-usd" data-fmt="usd">${usd(u)}</div>
+            <div class="ars"><small>EN PESOS</small><span data-count="${pesosAhorro}" data-key="d-ars">${money(pesosAhorro)}</span></div>
+            <div class="sub">Valuado al dólar <b>${nombre} ${tipo}</b> de ${money(ahora)}${tipo === "compra" ? " · lo que te pagarían hoy por venderlos" : " · lo que costaría comprarlos hoy"}</div>
+            ${base ? `<div class="sub varline">Desde que lo cargaste${a.baseFecha ? ` (${fechaCorta(a.baseFecha)})` : ""}: <span class="delta ${cls(dArs)}">${flecha(dArs)} ${signo(dArs)} (${fmtPct(dPct)})</span></div>` : ""}
+          ` : `
+            <div class="usd" style="font-size:24px;color:var(--text-dim)">Todavía no cargaste dólares</div>
+            <div class="sub">Cargá cuántos dólares tenés y te muestro cuánto valen hoy en pesos y si subieron o bajaron.</div>
+            <button class="add-btn" style="margin-top:12px;padding:10px 16px" data-action="editar-ahorro"><i data-lucide="plus"></i> Cargar mis dólares</button>
+          `}
+          <div class="live" style="margin-top:12px"><span class="sync-dot"></span> En vivo · actualizado ${hora}${cur ? ` · ${nombre}: compra ${money(cur.compra)} / venta ${money(cur.venta)}` : ""}</div>
+        </div>
+        ${banner}
+        ${state.dolarError ? `<div class="save-error">${esc(state.dolarError)}</div>` : ""}
+        <div class="filters enter" style="--i:1">
+          ${CASAS.map(([id, nom]) => `<button class="fchip ${state.casa === id ? "active" : ""}" data-casa="${id}">${nom}</button>`).join("")}
+        </div>
+        <div class="ghint" style="margin:-6px 0 10px"><b>${nombre}:</b> ${esc((CASAS.find((c) => c[0] === state.casa) || [])[2] || "")}</div>
+        <div class="filters enter" style="--i:1">
+          <button class="fchip ${tipo === "compra" ? "active" : ""}" data-tipo="compra">Valuar a compra</button>
+          <button class="fchip ${tipo === "venta" ? "active" : ""}" data-tipo="venta">Valuar a venta</button>
+        </div>
+        <div class="gcards">${cambios}</div>
+        <div class="chartcard enter" style="--i:3">
+          <div class="chart-head">
+            <h3>${modo === "ahorro" ? "Mi ahorro en pesos" : modo === "usd" ? "Cómo crecen mis dólares" : "Dólar " + nombre + " (" + tipo + ")"}</h3>
+            ${modo === "usd" ? "" : `<div class="filters" style="margin:0">
+              ${[[7, "1S"], [30, "1M"], [90, "3M"], [180, "6M"], [365, "1A"]].map(([d, l]) => `<button class="fchip ${state.rango === d ? "active" : ""}" data-rango="${d}">${l}</button>`).join("")}
+            </div>`}
+          </div>
+          ${u > 0 || state.movs.length ? `<div class="filters" style="margin-bottom:6px">
+            <button class="fchip ${modo === "cot" ? "active" : ""}" data-modo="cot">Cotización</button>
+            ${u > 0 ? `<button class="fchip ${modo === "ahorro" ? "active" : ""}" data-modo="ahorro">Mi ahorro en $</button>` : ""}
+            ${state.movs.length ? `<button class="fchip ${modo === "usd" ? "active" : ""}" data-modo="usd">Mis dólares (historial)</button>` : ""}</div>` : ""}
+          <div class="chart-wrap">${state.histCasa[state.casa] ? chartSvg(serie, dibujar, modo) : `<div class="loading-wrap"><i data-lucide="loader-2" class="spin"></i> Cargando cotización...</div>`}</div>
+          <div class="ghint" style="margin-top:8px">Fuente: dolarapi.com y argentinadatos.com. Se actualiza cada minuto; el último punto del gráfico es el valor de ahora.</div>
+        </div>
+
+        <div class="chartcard enter" style="--i:4">
+          <div class="chart-head"><h3>Simulador de venta</h3></div>
+          <div class="field" style="margin-bottom:10px">
+            <label for="sim-usd">Si vendo estos dólares hoy…</label>
+            <div class="amount-prefix"><span>US$</span><input type="number" id="sim-usd" min="0" step="1" value="${esc(sim)}" /></div>
+          </div>
+          <div id="sim-body">${simHtml(sim)}</div>
+          <div class="ghint" style="margin-top:8px">Se usa el precio de compra (lo que te pagan). Blue y oficial son venta de billete; MEP, CCL y cripto se operan con bonos o apps, y suelen tener costos o demoras.</div>
+        </div>
+
+        <div class="chartcard enter" style="--i:5">
+          <div class="chart-head"><h3>Alertas del dólar</h3>
+            <button class="fchip ${al.activa ? "active" : ""}" data-alerta="toggle">${al.activa ? "Activadas" : "Desactivadas"}</button></div>
+          <div class="ghint" style="margin:0 0 8px">Te aviso en el celular y acá cuando el dólar <b>${nomAl} (${al.tipo})</b> cambie más de:</div>
+          <div class="filters">${[0.5, 1, 2, 3].map((p) => `<button class="fchip ${Number(al.umbralPct) === p ? "active" : ""}" data-umbral="${p}">${String(p).replace(".", ",")} %</button>`).join("")}</div>
+          <div class="filters" style="margin-bottom:0">
+            <button class="fchip" data-alerta="actual">Usar el que estoy viendo (${nombre} ${tipo})</button>
+            <button class="fchip" data-alerta="notif">${"Notification" in window && Notification.permission === "granted" ? "Avisos del navegador: sí" : "Activar avisos del navegador"}</button>
+          </div>
+        </div>
+
+        ${state.movs.length ? `<div class="chartcard enter" style="--i:6">
+          <div class="chart-head"><h3>Mis movimientos de dólares</h3></div>
+          ${state.movs.slice().reverse().slice(0, 10).map((m) => `<div class="mov-row">
+            <span class="mf">${fechaCorta(m.fecha)}</span>
+            <span class="delta ${Number(m.usd) >= 0 ? "up" : "down"}">${Number(m.usd) >= 0 ? "+" : "−"} ${usd(Math.abs(m.usd))}</span>
+            <span class="mn">${esc(m.nota || (m.tipo === "corregir" ? "Corrección del total" : m.tipo === "retirar" ? "Retiro" : "Ingreso"))}</span>
+            <span class="mt">${usd(m.total)}</span></div>`).join("")}
+        </div>` : ""}
+      `;
+    }
+
+    function simHtml(cant) {
+      const n = Number(cant) || 0;
+      const filas = ["blue", "oficial", "bolsa", "contadoconliqui", "cripto"]
+        .map((c) => ({ c, tasa: (state.dolares[c] || {}).compra || 0 }))
+        .filter((x) => x.tasa)
+        .map((x) => ({ ...x, pesos: n * x.tasa }))
+        .sort((a, b) => b.pesos - a.pesos);
+      if (!filas.length) return `<div class="ghint">Cargando cotizaciones…</div>`;
+      const blue = (filas.find((x) => x.c === "blue") || {}).pesos || 0;
+      return filas.map((x, i) => {
+        const d = x.pesos - blue;
+        return `<div class="sim-row ${i === 0 ? "best" : ""}"><span class="nm">${esc(nombreCasa(x.c))}${i === 0 ? ' <em>mejor</em>' : ""}</span>
+          <span class="tasa">${money(x.tasa)}</span><span class="pe">${money(x.pesos)}</span>
+          <span class="df delta ${d >= 0 ? "up" : "down"}">${x.c === "blue" ? "" : (d >= 0 ? "+" : "−") + money(Math.abs(d))}</span></div>`;
+      }).join("");
+    }
+
+    function renderAhorroModal() {
+      const a = state.ahorro, m = state.ahorroModo, u = Number(a.usd) || 0;
+      const pregunta = m === "sumar" ? "¿Cuántos dólares sumaste?" : m === "retirar" ? "¿Cuántos dólares sacaste?" : "¿Cuántos dólares tenés en total?";
+      return `
+        <div class="overlay" id="overlay-ahorro">
+          <div class="modal" role="dialog" aria-modal="true">
+            <div class="modal-head">
+              <h2>Mis dólares</h2>
+              <button data-action="cerrar-ahorro" aria-label="Cerrar"><i data-lucide="x"></i></button>
+            </div>
+            <div class="ghint" style="margin:-8px 0 10px">Ahora tenés <b>${usd(u)}</b>. Cada cambio queda guardado en tu historial.</div>
+            <div class="filters" style="margin-bottom:12px">
+              ${[["sumar", "Sumar"], ["retirar", "Retirar"], ["corregir", "Corregir total"]].map(([id, l]) => `<button type="button" class="fchip ${m === id ? "active" : ""}" data-mov="${id}">${l}</button>`).join("")}
+            </div>
+            <form id="ahorro-form">
+              <div class="field">
+                <label for="f-ahorro">${pregunta}</label>
+                <div class="amount-prefix">
+                  <span>US$</span>
+                  <input type="number" id="f-ahorro" step="0.01" min="0" required value="${esc(state.ahorroInput)}" />
+                </div>
+                ${u === 0 ? `<div class="hint">La primera vez, usá "Sumar" con todos los dólares que ya tenés.</div>` : ""}
+              </div>
+              <div class="field">
+                <label for="f-ahorro-fecha">Fecha</label>
+                <input type="date" id="f-ahorro-fecha" required value="${esc(state.ahorroFecha || hoyIso)}" />
+              </div>
+              <div class="field">
+                <label for="f-ahorro-nota">Nota (opcional)</label>
+                <input type="text" id="f-ahorro-nota" placeholder="Ej: cambié pesos a dólares" value="${esc(state.ahorroNota)}" />
+              </div>
+              <button type="submit" class="submit-btn">Guardar</button>
+              ${a.bases && Object.keys(a.bases).length ? `<button type="button" class="fchip" style="width:100%;margin-top:10px;padding:10px" data-action="reiniciar-base">Guardar y reiniciar la comparación con el dólar de hoy</button>` : ""}
+            </form>
+          </div>
+        </div>`;
     }
 
     function renderApp() {
@@ -1240,6 +1873,7 @@
       const r = resumen(lista);
       const total = r.totalCobrado + r.totalPorCobrar;
       const pct = total > 0 ? Math.round((r.totalCobrado / total) * 100) : 0;
+      const atrasadas = lista.filter((t) => (estadoCobro(t) || {}).t === "atrasada").length;
       let idx = 0;
       const st = () => `style="--i:${idx++}"`;
 
@@ -1277,19 +1911,49 @@
               <span class="chip"><i data-lucide="briefcase" style="width:13px;height:13px"></i> Trabajos <b>${r.cantidad}</b></span>
               <span class="chip ${r.sinFacturador > 0 ? "warn" : ""}">Sin facturador <b>${r.sinFacturador}</b></span>
               <span class="chip ${r.sinEnviar > 0 ? "warn" : ""}" ${r.sinEnviar > 0 ? `data-goto="sinenviar"` : ""}>Sin enviar <b>${r.sinEnviar}</b></span>
+              <span class="chip ${atrasadas > 0 ? "warn" : ""}" ${atrasadas > 0 ? `data-goto="atrasadas"` : ""}>Atrasadas <b>${atrasadas}</b></span>
             </div>
             <div class="seg enter" ${st()} data-view="${state.view}">
-              <span class="thumb ${state.viewChanged ? "slide" : ""}" style="--from:${({ list: 0, cal: 100, gastos: 200 })[state.prevView] ?? 0}%"></span>
+              <span class="thumb ${state.viewChanged ? "slide" : ""}" style="--from:${({ list: 0, cal: 100, gastos: 200, dolares: 300, resumen: 400 })[state.prevView] ?? 0}%"></span>
               <button class="${state.view === "list" ? "active" : ""}" data-view="list"><i data-lucide="layout-list"></i> Lista</button>
               <button class="${state.view === "cal" ? "active" : ""}" data-view="cal"><i data-lucide="calendar-days"></i> Calendario</button>
               <button class="${state.view === "gastos" ? "active" : ""}" data-view="gastos"><i data-lucide="wallet"></i> Gastos</button>
+              <button class="${state.view === "dolares" ? "active" : ""}" data-view="dolares"><i data-lucide="trending-up"></i> Dólares</button>
+              <button class="${state.view === "resumen" ? "active" : ""}" data-view="resumen"><i data-lucide="bar-chart-3"></i> Resumen</button>
             </div>
             ${state.saveError ? `<div class="save-error">${esc(state.saveError)}</div>` : ""}
-            ${state.view === "cal" ? renderCalendarView(lista) : state.view === "gastos" ? renderGastosView() : renderListView(lista)}
+            ${state.view === "cal" ? renderCalendarView(lista) : state.view === "gastos" ? renderGastosView() : state.view === "dolares" ? renderDolaresView() : state.view === "resumen" ? renderResumenView(lista) : renderListView(lista)}
           `}
         </div>
-        ${state.loading || state.view === "gastos" ? "" : `<button class="fab" data-action="nuevo" aria-label="Agregar trabajo" title="Agregar trabajo"><i data-lucide="plus"></i></button>`}
+        ${state.loading || ["gastos", "dolares", "resumen"].includes(state.view) ? "" : `<button class="fab" data-action="nuevo" aria-label="Agregar trabajo" title="Agregar trabajo"><i data-lucide="plus"></i></button>`}
         ${state.showForm ? renderModal() : ""}
+        ${state.showSaldo ? renderSaldoModal() : ""}
+        ${state.showAhorro ? renderAhorroModal() : ""}
+      `;
+    }
+
+    function renderSaldoModal() {
+      return `
+        <div class="overlay" id="overlay-saldo">
+          <div class="modal" role="dialog" aria-modal="true">
+            <div class="modal-head">
+              <h2>Editar saldo real</h2>
+              <button data-action="cerrar-saldo" aria-label="Cerrar"><i data-lucide="x"></i></button>
+            </div>
+            <form id="saldo-form">
+              <div class="field">
+                <label for="f-saldo">¿Cuánto te queda realmente?</label>
+                <div class="amount-prefix">
+                  <span>$</span>
+                  <input type="number" id="f-saldo" step="1" required value="${esc(state.saldoInput)}" />
+                </div>
+                <div class="hint">La diferencia con (cobrado − gastos anotados) se guarda como ajuste. Los gastos y cobros nuevos siguen sumando o restando desde este número. Podés cambiarlo cuando quieras.</div>
+              </div>
+              <button type="submit" class="submit-btn">Guardar saldo</button>
+              ${state.ajuste ? `<button type="button" class="fchip" style="width:100%;margin-top:10px;padding:10px" data-action="restablecer-saldo">Quitar el ajuste manual</button>` : ""}
+            </form>
+          </div>
+        </div>
       `;
     }
 
@@ -1418,6 +2082,84 @@
       on('[data-action="pedir-borrar-gasto"]', (b) => { state.confirmDeleteGasto = b.dataset.id; state.animate = false; render(); });
       on('[data-action="cancelar-borrar-gasto"]', () => { state.confirmDeleteGasto = null; state.animate = false; render(); });
       on('[data-action="confirm-borrar-gasto"]', (b) => borrarGasto(b.dataset.id));
+      on('[data-action="editar-saldo"]', () => {
+        state.saldoInput = String(saldoBruto() - state.ajuste);
+        state.showSaldo = true; state.animate = false; render();
+      });
+      on('[data-action="cerrar-saldo"]', () => { state.showSaldo = false; state.animate = false; render(); });
+      on('[data-action="restablecer-saldo"]', () => guardarSaldo(saldoBruto()));
+      const overlaySaldo = document.getElementById("overlay-saldo");
+      if (overlaySaldo) overlaySaldo.addEventListener("click", (e) => { if (e.target === overlaySaldo) { state.showSaldo = false; state.animate = false; render(); } });
+      const saldoForm = document.getElementById("saldo-form");
+      if (saldoForm) {
+        saldoForm.addEventListener("submit", (e) => { e.preventDefault(); guardarSaldo(Number(document.getElementById("f-saldo").value)); });
+        document.getElementById("f-saldo").addEventListener("input", (e) => { state.saldoInput = e.target.value; });
+        document.getElementById("f-saldo").focus();
+      }
+      on('[data-action="editar-ahorro"]', () => {
+        state.ahorroInput = ""; state.ahorroModo = "sumar"; state.ahorroFecha = hoyIso; state.ahorroNota = "";
+        state.showAhorro = true; state.animate = false; render();
+      });
+      on("[data-mov]", (b) => {
+        state.ahorroModo = b.dataset.mov;
+        state.ahorroInput = b.dataset.mov === "corregir" ? String(Number(state.ahorro.usd) || 0) : "";
+        state.animate = false; render();
+      });
+      on('[data-action="cerrar-ahorro"]', () => { state.showAhorro = false; state.animate = false; render(); });
+      const formAhorro = () => ({ modo: state.ahorroModo, monto: state.ahorroInput, fecha: state.ahorroFecha, nota: state.ahorroNota });
+      on('[data-action="reiniciar-base"]', () => guardarMovimiento(formAhorro(), true));
+      const overlayAhorro = document.getElementById("overlay-ahorro");
+      if (overlayAhorro) overlayAhorro.addEventListener("click", (e) => { if (e.target === overlayAhorro) { state.showAhorro = false; state.animate = false; render(); } });
+      const ahorroForm = document.getElementById("ahorro-form");
+      if (ahorroForm) {
+        ahorroForm.addEventListener("submit", (e) => { e.preventDefault(); guardarMovimiento(formAhorro(), false); });
+        document.getElementById("f-ahorro").addEventListener("input", (e) => { state.ahorroInput = e.target.value; });
+        document.getElementById("f-ahorro-fecha").addEventListener("input", (e) => { state.ahorroFecha = e.target.value; });
+        document.getElementById("f-ahorro-nota").addEventListener("input", (e) => { state.ahorroNota = e.target.value; });
+        document.getElementById("f-ahorro").focus();
+      }
+      on('[data-alerta="toggle"]', () => guardarAlerta({ activa: !state.alerta.activa }));
+      on('[data-alerta="actual"]', () => guardarAlerta({}));
+      on('[data-alerta="notif"]', async () => {
+        if (!("Notification" in window)) { mostrarAviso("Tu navegador no admite avisos", "Igual vas a ver el cartel dentro de la página.", "flat"); return; }
+        await Notification.requestPermission();
+        state.animate = false; render();
+      });
+      on("[data-umbral]", (b) => guardarAlerta({ umbralPct: Number(b.dataset.umbral) }));
+      const simInput = document.getElementById("sim-usd");
+      if (simInput) simInput.addEventListener("input", (e) => {
+        state.simUsd = e.target.value;
+        document.getElementById("sim-body").innerHTML = simHtml(e.target.value);
+      });
+      on("[data-casa]", (b) => {
+        state.casa = b.dataset.casa; state.drawAnim = true; state.animate = false;
+        cargarDolarHist(state.casa); // carga el historial de ese dólar la primera vez
+        render();
+      });
+      on("[data-tipo]", (b) => { state.tipoCot = b.dataset.tipo; state.drawAnim = true; state.animate = false; render(); });
+      on("[data-rango]", (b) => { state.rango = Number(b.dataset.rango); state.drawAnim = true; state.animate = false; render(); });
+      on("[data-modo]", (b) => { state.chartModo = b.dataset.modo; state.drawAnim = true; state.animate = false; render(); });
+
+      // Gráfico del dólar: línea guía y valor al pasar el mouse / dedo
+      const ch = document.getElementById("dchart");
+      if (ch && state.chartPts.length) {
+        const tip = document.getElementById("dtip"), cl = document.getElementById("dcl"), cc = document.getElementById("dcc");
+        const ocultar = () => { tip.style.opacity = 0; cl.setAttribute("opacity", 0); cc.setAttribute("opacity", 0); };
+        const mover = (e) => {
+          const r = ch.getBoundingClientRect(), x = ((e.clientX - r.left) / r.width) * CH_W;
+          let best = state.chartPts[0];
+          for (const p of state.chartPts) if (Math.abs(p.x - x) < Math.abs(best.x - x)) best = p;
+          cl.setAttribute("x1", best.x); cl.setAttribute("x2", best.x); cl.setAttribute("opacity", 1);
+          cc.setAttribute("cx", best.x); cc.setAttribute("cy", best.y); cc.setAttribute("opacity", 1);
+          tip.innerHTML = `${fechaCorta(best.fecha)}<br><b>${state.chartFmt === "usd" ? usd(best.v) : money(best.v)}</b>`;
+          tip.style.left = (best.x / CH_W) * r.width + "px";
+          tip.style.top = (best.y / CH_H) * r.height + "px";
+          tip.style.opacity = 1;
+        };
+        ch.addEventListener("pointermove", mover);
+        ch.addEventListener("pointerdown", mover);
+        ch.addEventListener("pointerleave", ocultar);
+      }
       on('[data-action="logout"]', () => handleLogout());
       on('[data-action="cerrar-form"]', () => cerrarForm());
 

@@ -15,6 +15,11 @@ service cloud.firestore {
       allow read, write: if esDueno();
     }
 
+    // Ajuste manual del "saldo real" (pestaña Gastos)
+    match /ajustes/{id} {
+      allow read, write: if esDueno();
+    }
+
     match /gastos/{id} {
       allow read, delete: if esDueno();
       allow create: if esDueno()

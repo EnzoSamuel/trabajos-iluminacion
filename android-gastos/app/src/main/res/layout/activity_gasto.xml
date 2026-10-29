@@ -39,6 +39,16 @@
         android:inputType="textCapSentences"
         android:maxLines="2" />
 
+    <Button
+        android:id="@+id/btn_fecha_form"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_input"
+        android:text="Fecha: hoy"
+        android:textAllCaps="false"
+        android:textColor="#EAF2F8" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -22,6 +23,8 @@ class MainActivity : Activity() {
     private lateinit var btnLogin: Button
     private lateinit var btnLogout: Button
     private lateinit var btnWidget: Button
+    private lateinit var btnProbar: Button
+    private lateinit var btnPanel: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,6 +43,16 @@ class MainActivity : Activity() {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
         }
 
+        if (intent.getBooleanExtra("selftest", false)) android.util.Log.i("GastosSelfTest", GastoWidget.probarVistas(this) + " " + GastoWidget.guardarVistaPrevia(this))
+        btnPanel = findViewById(R.id.btn_panel)
+        btnPanel.setOnClickListener { startActivity(Intent(this, PanelActivity::class.java)) }
+        btnProbar = findViewById(R.id.btn_probar)
+        btnProbar.setOnClickListener {
+            Programar.probarDolar(this)
+            Toast.makeText(this, "Mandando un aviso de prueba del dólar…", Toast.LENGTH_SHORT).show()
+        }
+        if (Session.hasSession(this)) Programar.dolar(this)
+
         btnLogin.setOnClickListener { login() }
         btnLogout.setOnClickListener { Session.clear(this); GastoWidget.refresh(this); pintar() }
         btnWidget.setOnClickListener { pedirWidget() }
@@ -51,6 +64,8 @@ class MainActivity : Activity() {
         form.visibility = if (ok) View.GONE else View.VISIBLE
         btnLogout.visibility = if (ok) View.VISIBLE else View.GONE
         btnWidget.visibility = if (ok) View.VISIBLE else View.GONE
+        btnProbar.visibility = if (ok) View.VISIBLE else View.GONE
+        btnPanel.visibility = if (ok) View.VISIBLE else View.GONE
         estado.text = if (ok) "Sesión iniciada como ${Session.email(this)}.\nAgregá el widget \"Gastos Express\" a tu pantalla de inicio."
         else "Iniciá sesión una sola vez para poder enviar gastos desde el widget."
     }
@@ -67,7 +82,7 @@ class MainActivity : Activity() {
                 btnLogin.isEnabled = true
                 btnLogin.text = "Iniciar sesión"
                 pass.setText("")
-                if (error != null) Toast.makeText(this, error, Toast.LENGTH_LONG).show() else { GastoWidget.refresh(this); pintar() }
+                if (error != null) Toast.makeText(this, error, Toast.LENGTH_LONG).show() else { GastoWidget.refresh(this); Programar.dolar(this); pintar(); startActivity(Intent(this, PanelActivity::class.java)); finish() }
             }
         }.start()
     }

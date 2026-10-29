@@ -1,6 +1,8 @@
 package com.enzo.gastosexpress
 
 import android.app.Activity
+import android.app.DatePickerDialog
+import java.time.LocalDate
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -27,6 +29,19 @@ class GastoActivity : Activity() {
         categoria.setText(cat)
         (if (cat.isBlank()) categoria else monto).requestFocus()
 
+        var fecha: LocalDate? = null // null = hoy, con la hora actual
+        val btnFecha = findViewById<Button>(R.id.btn_fecha_form)
+        btnFecha.setOnClickListener {
+            val base = fecha ?: LocalDate.now()
+            DatePickerDialog(this, { _, y, m, d ->
+                val elegida = LocalDate.of(y, m + 1, d)
+                fecha = if (elegida == LocalDate.now()) null else elegida
+                btnFecha.text = fecha?.let { "Fecha: " + fechaCorta(it.toString()) } ?: "Fecha: hoy"
+            }, base.year, base.monthValue - 1, base.dayOfMonth).apply {
+                datePicker.maxDate = System.currentTimeMillis()
+            }.show()
+        }
+
         findViewById<Button>(R.id.btn_cancelar).setOnClickListener { finish() }
         findViewById<Button>(R.id.btn_guardar).setOnClickListener {
             val c = categoria.text.toString().trim().ifEmpty { "Otro" }
@@ -36,7 +51,7 @@ class GastoActivity : Activity() {
                 monto.requestFocus()
                 return@setOnClickListener
             }
-            Envio.enviar(this, c, m, descripcion.text.toString().trim())
+            Envio.enviar(this, c, m, descripcion.text.toString().trim(), fecha?.toString() ?: "")
             Toast.makeText(this, "Enviando gasto…", Toast.LENGTH_SHORT).show()
             finish()
         }

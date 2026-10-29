@@ -3,7 +3,9 @@ package com.enzo.gastosexpress
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
@@ -23,8 +25,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.text.NumberFormat
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -42,12 +46,14 @@ object Hoy {
     fun mes(c: Context): Long =
         if (p(c).getString("mesKey", "") == LocalDate.now().toString().take(7)) p(c).getLong("mesTotal", 0L) else 0L
 
-    fun sumar(c: Context, monto: Long) {
+    /** Suma al total de hoy / del mes solo si la fecha del gasto cae en hoy / en este mes. */
+    fun sumar(c: Context, monto: Long, fechaMs: Long) {
         val hoy = LocalDate.now().toString()
-        p(c).edit()
-            .putString("fecha", hoy).putLong("total", total(c) + monto)
-            .putString("mesKey", hoy.take(7)).putLong("mesTotal", mes(c) + monto)
-            .apply()
+        val dia = Instant.ofEpochMilli(fechaMs).atZone(ZoneId.systemDefault()).toLocalDate().toString()
+        val e = p(c).edit()
+        if (dia == hoy) e.putString("fecha", hoy).putLong("total", total(c) + monto)
+        if (dia.take(7) == hoy.take(7)) e.putString("mesKey", hoy.take(7)).putLong("mesTotal", mes(c) + monto)
+        e.apply()
     }
 }
 
@@ -55,9 +61,12 @@ object Hoy {
 object Hist {
     private fun p(c: Context) = c.getSharedPreferences("hist", Context.MODE_PRIVATE)
     private val hora = DateTimeFormatter.ofPattern("HH:mm")
+    private val dia = DateTimeFormatter.ofPattern("dd/MM")
 
-    fun add(c: Context, cat: String, monto: Long) {
-        val linea = "$cat · ${pesos(monto)} · ${LocalTime.now().format(hora)}"
+    fun add(c: Context, cat: String, monto: Long, fechaMs: Long) {
+        val f = Instant.ofEpochMilli(fechaMs).atZone(ZoneId.systemDefault())
+        val cuando = if (f.toLocalDate() == LocalDate.now()) f.format(hora) else f.format(dia)
+        val linea = "$cat · ${pesos(monto)} · $cuando"
         val todas = (listOf(linea) + lista(c)).take(5)
         p(c).edit().putString("items", todas.joinToString("\n")).apply()
     }
@@ -66,52 +75,58 @@ object Hist {
         (p(c).getString("items", "") ?: "").split("\n").filter { it.isNotBlank() }
 }
 
-/** Borrador que se arma tocando el widget grande (categoría, monto y nota). */
-object Borrador {
-    private fun p(c: Context) = c.getSharedPreferences("borrador", Context.MODE_PRIVATE)
-    var Context.cat: String
-        get() = p(this).getString("cat", "") ?: ""
-        set(v) { p(this).edit().putString("cat", v).apply() }
-    var Context.monto: String
-        get() = p(this).getString("monto", "") ?: ""
-        set(v) { p(this).edit().putString("monto", v).apply() }
-    var Context.nota: String
-        get() = p(this).getString("nota", "") ?: ""
-        set(v) { p(this).edit().putString("nota", v).apply() }
-
-    fun limpiar(c: Context) = p(c).edit().clear().apply()
-}
+/** "2026-10-25" -> "25/10/2026" */
+fun fechaCorta(iso: String): String = iso.split("-").let { if (it.size == 3) "${it[2]}/${it[1]}/${it[0]}" else iso }
 
 object Avisos {
-    private const val CANAL = "gastos"
-
     fun toast(c: Context, msg: String) {
         Handler(Looper.getMainLooper()).post { Toast.makeText(c.applicationContext, msg, Toast.LENGTH_LONG).show() }
     }
 
-    fun notificar(c: Context, id: Int, titulo: String, texto: String) {
+    /**
+     * [alta] = salta en pantalla (heads-up) con sonido/vibración; [persistente] = se queda en la barra
+     * hasta que la saques vos (si no, se borra sola a los 8 s).
+     */
+    fun notificar(
+        c: Context, id: Int, titulo: String, texto: String,
+        canal: String = "gastos", canalNombre: String = "Gastos Express",
+        alta: Boolean = false, persistente: Boolean = false,
+    ) {
         val nm = c.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= 26) {
-            nm.createNotificationChannel(NotificationChannel(CANAL, "Gastos Express", NotificationManager.IMPORTANCE_DEFAULT))
+            nm.createNotificationChannel(
+                NotificationChannel(canal, canalNombre, if (alta) NotificationManager.IMPORTANCE_HIGH else NotificationManager.IMPORTANCE_DEFAULT)
+            )
         }
         if (Build.VERSION.SDK_INT >= 33 &&
             c.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
-        val n = NotificationCompat.Builder(c, CANAL)
+        val abrir = PendingIntent.getActivity(
+            c, id, Intent(c, PanelActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val b = NotificationCompat.Builder(c, canal)
             .setSmallIcon(android.R.drawable.stat_notify_sync_noanim)
             .setContentTitle(titulo)
             .setContentText(texto)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(texto))
+            .setPriority(if (alta) NotificationCompat.PRIORITY_HIGH else NotificationCompat.PRIORITY_DEFAULT)
+            .setDefaults(if (alta) NotificationCompat.DEFAULT_ALL else 0)
+            .setContentIntent(abrir)
             .setAutoCancel(true)
-            .setTimeoutAfter(8000)
-            .build()
-        NotificationManagerCompat.from(c).notify(id, n)
+        if (!persistente) b.setTimeoutAfter(8000)
+        NotificationManagerCompat.from(c).notify(id, b.build())
     }
 }
 
 object Envio {
     /** Encola el envío en segundo plano. Si no hay internet, WorkManager reintenta solo. */
-    fun enviar(ctx: Context, categoria: String, monto: Long, descripcion: String) {
+    fun enviar(ctx: Context, categoria: String, monto: Long, descripcion: String, fechaIso: String = "") {
+        // Fecha elegida + hora actual; sin fecha = ahora. Se fija acá para que un reintento conserve la hora original.
+        val ahora = System.currentTimeMillis()
+        val fechaMs = if (fechaIso.isBlank()) ahora else
+            LocalDate.parse(fechaIso).atTime(LocalTime.now()).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
         val req = OneTimeWorkRequestBuilder<GastoWorker>()
-            .setInputData(workDataOf("categoria" to categoria, "monto" to monto, "descripcion" to descripcion))
+            .setInputData(workDataOf("categoria" to categoria, "monto" to monto, "descripcion" to descripcion, "fechaMs" to fechaMs))
             .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.SECONDS)
             .build()
@@ -124,14 +139,15 @@ class GastoWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx,
         val categoria = inputData.getString("categoria") ?: "Otro"
         val monto = inputData.getLong("monto", 0L)
         val descripcion = inputData.getString("descripcion") ?: ""
+        val fechaMs = inputData.getLong("fechaMs", System.currentTimeMillis())
         val nid = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
         val ctx = applicationContext
         try {
-            val code = Api.postGasto(ctx, categoria, monto, descripcion)
+            val code = Api.postGasto(ctx, categoria, monto, descripcion, fechaMs)
             when {
                 code in 200..299 -> {
-                    Hoy.sumar(ctx, monto)
-                    Hist.add(ctx, categoria, monto)
+                    Hoy.sumar(ctx, monto, fechaMs)
+                    Hist.add(ctx, categoria, monto, fechaMs)
                     GastoWidget.refresh(ctx)
                     Avisos.toast(ctx, "Gasto registrado con éxito")
                     Avisos.notificar(ctx, nid, "Gasto registrado con éxito", "$categoria · ${pesos(monto)}")

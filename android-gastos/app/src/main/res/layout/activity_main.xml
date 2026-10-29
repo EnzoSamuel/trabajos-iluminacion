@@ -63,15 +63,35 @@
         </LinearLayout>
 
         <Button
-            android:id="@+id/btn_widget"
+            android:id="@+id/btn_panel"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="20dp"
             android:background="@drawable/btn_accent"
-            android:text="Agregar widget a la pantalla de inicio"
+            android:text="Abrir el panel a pantalla completa"
             android:textAllCaps="false"
             android:textColor="#06121C"
             android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btn_widget"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_input"
+            android:text="Agregar widget a la pantalla de inicio"
+            android:textAllCaps="false"
+            android:textColor="#EAF2F8" />
+
+        <Button
+            android:id="@+id/btn_probar"
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_input"
+            android:text="Probar aviso del dólar"
+            android:textAllCaps="false"
+            android:textColor="#EAF2F8" />
 
         <Button
             android:id="@+id/btn_logout"
